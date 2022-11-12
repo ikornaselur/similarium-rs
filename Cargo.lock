@@ -1232,6 +1232,7 @@ dependencies = [
  "env_logger",
  "log",
  "mt19937",
+ "rand",
  "serde",
  "sha2",
  "sqlx",
