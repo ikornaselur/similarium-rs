@@ -4,7 +4,7 @@ name: Tast and lint
 
 jobs:
   build:
-    name: Build project
+    name: Build and cache project
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -49,7 +49,7 @@ jobs:
         run: cargo check
 
   test:
-    name: Test Suite
+    name: Test
     runs-on: ubuntu-latest
     needs: [build]
     steps:
@@ -68,7 +68,7 @@ jobs:
         run: cargo test
 
   lints:
-    name: Lints
+    name: Lint
     runs-on: ubuntu-latest
     needs: [build]
     steps:
