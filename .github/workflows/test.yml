@@ -24,17 +24,13 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
 
       - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           profile: minimal
-          toolchain: stable
-          override: true
           components: rustfmt, clippy
 
       - name: Build project
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
+        run: cargo build
         
   check:
     name: Check
@@ -55,10 +51,14 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Run cargo check
-        uses: actions-rs/cargo@v1
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
-          command: check
+          profile: minimal
+          components: rustfmt, clippy
+
+      - name: Run cargo check
+        run: cargo check
 
   test:
     name: Test Suite
@@ -79,10 +79,15 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Run cargo test
-        uses: actions-rs/cargo@v1
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
-          command: test
+          profile: minimal
+          components: rustfmt, clippy
+
+
+      - name: Run cargo test
+        run: cargo test
 
   lints:
     name: Lints
@@ -103,14 +108,14 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Run cargo fmt
-        uses: actions-rs/cargo@v1
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
-          command: fmt
-          args: --all -- --check
+          profile: minimal
+          components: rustfmt, clippy
+
+      - name: Run cargo fmt
+        run: cargo fmt --all -- --check
 
       - name: Run cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: -- -D warnings
+        run: cargo clippy -- -D warnings
