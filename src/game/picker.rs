@@ -1,4 +1,4 @@
-use crate::target_words::TARGET_WORDS;
+use crate::TARGET_WORDS;
 use mt19937::MT19937;
 use rand::RngCore;
 use sha2::{Digest, Sha512};
@@ -7,11 +7,12 @@ pub struct SecretPicker {
     seed_digits: Vec<u32>,
 }
 
-/// A SecretPicker that is designed to gives the same random values from a list of strings as a
-/// similar Python implementation would
+/// The SecretPicker is designed to give the same random values from a list of strings as a similar
+/// Python implementation would
 ///
 /// The SecretPicker needs to be initialised with a seed, after which `get_secret` can be used to
-/// get the secret for a corresponding puzzle day
+/// get the secret at a given index. The seed is used to do a one to one mapping into the list of
+/// strings, providing a deterministic unique order of the target words.
 ///
 /// The equivalent Python functionality to get secret at index 123 would be
 ///
@@ -26,6 +27,19 @@ pub struct SecretPicker {
 /// SecretPicker uses the same MT19937 algorithm behind the scenes as is used in Python for the
 /// random number generator
 impl SecretPicker {
+    /// Initialise a new SecretPicker with a seed
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use similarium::SecretPicker;
+    ///
+    /// let seed = &"foobarbaz";
+    /// let picker = SecretPicker::new(seed);
+    /// let target_word = picker.get_secret(10);
+    ///
+    /// assert_eq!(target_word, "tie");
+    /// ```
     pub fn new(seed: &str) -> Self {
         let mut seed_bytes = seed.as_bytes().to_vec();
 
@@ -48,6 +62,11 @@ impl SecretPicker {
         SecretPicker { seed_digits: digs }
     }
 
+    /// Get a secret for a specific index
+    ///
+    /// The seed it used to randomly map each index to another random index, where each index will
+    /// have a one to one mapping to another index. This randomised mapping mean that a secret can
+    /// be retrieved deterministically with the same seed and input index value
     pub fn get_secret(&self, idx: u32) -> &'static str {
         let target_idx = self.convert_index(idx) as usize;
         TARGET_WORDS[target_idx % TARGET_WORDS.len()]
