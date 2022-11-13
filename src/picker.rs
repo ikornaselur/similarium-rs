@@ -41,7 +41,7 @@ impl SecretPicker {
         let mut digs: Vec<u32> = Vec::new();
         let mut buf: [u8; 4] = [0, 0, 0, 0];
         for chunk in seed_bytes.chunks(4) {
-            buf.copy_from_slice(&chunk);
+            buf.copy_from_slice(chunk);
             digs.push(u32::from_le_bytes(buf));
         }
 
