@@ -1,5 +1,4 @@
 mod picker;
-#[rustfmt::skip]
 mod target_words;
 
 pub use picker::SecretPicker;

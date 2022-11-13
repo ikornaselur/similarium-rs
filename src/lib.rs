@@ -7,3 +7,4 @@ mod slack_client;
 
 pub use api::app::run;
 pub use error::{SimilariumError, SimilariumErrorType};
+pub use game::{SecretPicker, TARGET_WORDS};
