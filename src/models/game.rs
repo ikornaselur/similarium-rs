@@ -4,13 +4,13 @@ use sqlx::sqlite::SqlitePool;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Game {
-    id: i64,
-    channel_id: String,
-    thread_ts: String,
-    puzzle_number: i64,
-    date: String,
-    active: bool,
-    secret: String,
+    pub id: i64,
+    pub channel_id: String,
+    pub thread_ts: String,
+    pub puzzle_number: i64,
+    pub date: String,
+    pub active: bool,
+    pub secret: String,
 }
 
 impl Game {
