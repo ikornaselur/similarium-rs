@@ -26,7 +26,6 @@ jobs:
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
           components: rustfmt, clippy
 
       - name: Build project
@@ -54,11 +53,10 @@ jobs:
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
           components: rustfmt, clippy
 
       - name: Run cargo check
-        run: cargo check
+        run: cargo check -p similarium
 
   test:
     name: Test Suite
@@ -82,9 +80,7 @@ jobs:
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
           components: rustfmt, clippy
-
 
       - name: Run cargo test
         run: cargo test
@@ -111,11 +107,10 @@ jobs:
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
           components: rustfmt, clippy
 
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
 
       - name: Run cargo clippy
-        run: cargo clippy -- -D warnings
+        run: cargo clippy --no-deps -- -D warnings
