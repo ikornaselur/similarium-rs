@@ -11,6 +11,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up cargo cache
+        id: cargo-cache
         uses: actions/cache@v3
         continue-on-error: false
         with:
@@ -25,13 +26,16 @@ jobs:
 
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
+        if: steps.cargo-cache.outputs.cache-hit != 'true'
         with:
           components: rustfmt, clippy
 
       - name: Build project
+        if: steps.cargo-cache.outputs.cache-hit != 'true'
         run: cargo build
 
       - name: Cargo check to build a check cache
+        if: steps.cargo-cache.outputs.cache-hit != 'true'
         run: cargo check
         
   check:
