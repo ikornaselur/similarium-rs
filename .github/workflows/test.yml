@@ -10,32 +10,21 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v3
 
-      - name: Set up cargo cache
-        id: cargo-cache
-        uses: actions/cache@v3
-        continue-on-error: false
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
-        if: steps.cargo-cache.outputs.cache-hit != 'true'
         with:
           components: rustfmt, clippy
 
+      - name: Cache
+        id: cache
+        uses: Swatinem/rust-cache@v2
+
       - name: Build project
-        if: steps.cargo-cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: cargo build
 
       - name: Cargo check to build a check cache
-        if: steps.cargo-cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: cargo check
         
   check:
@@ -46,16 +35,11 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v3
 
-      - name: Restore cargo cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
 
       - name: Run cargo check
         run: cargo check
@@ -68,21 +52,11 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v3
 
-      - name: Restore cargo cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
 
       - name: Run cargo test
         run: cargo test
@@ -95,21 +69,13 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v3
 
-      - name: Restore cargo cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
 
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
