@@ -52,12 +52,10 @@ impl SecretPicker {
         // Align to a multiple of 4, for 4 bytes in u32
         seed_bytes.extend(std::iter::repeat(0).take(4 - seed_bytes.len() % 4));
 
-        let mut digs: Vec<u32> = Vec::new();
-        let mut buf: [u8; 4] = [0, 0, 0, 0];
-        for chunk in seed_bytes.chunks(4) {
-            buf.copy_from_slice(chunk);
-            digs.push(u32::from_le_bytes(buf));
-        }
+        let digs: Vec<u32> = seed_bytes
+            .chunks(4)
+            .map(|chunk| u32::from_le_bytes(chunk.try_into().unwrap()))
+            .collect();
 
         SecretPicker { seed_digits: digs }
     }
