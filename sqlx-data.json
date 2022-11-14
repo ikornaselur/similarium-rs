@@ -1,0 +1,245 @@
+{
+  "db": "SQLite",
+  "22bd250b16f1f2600ff11b03f77acfddd1da00c3cef8f833e41833146414e6ca": {
+    "describe": {
+      "columns": [
+        {
+          "name": "word",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "top",
+          "ordinal": 1,
+          "type_info": "Float"
+        },
+        {
+          "name": "top10",
+          "ordinal": 2,
+          "type_info": "Float"
+        },
+        {
+          "name": "rest",
+          "ordinal": 3,
+          "type_info": "Float"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "\n            SELECT *\n            FROM similarity_range\n            WHERE word = ?\n            "
+  },
+  "235d9e0aeb5d3bef022e87914c9b5bbd75f4b1d591b17e2315d42376b09a9d9c": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 6
+      }
+    },
+    "query": "\n            INSERT INTO game (channel_id, thread_ts, puzzle_number, date, active, secret)\n            VALUES (?1, ?2, ?3, ?4, ?5, ?6)\n            "
+  },
+  "5a090e3c55e47397472141e571c13e1dad07f603c211a7e9aabe33921769f798": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 4
+      }
+    },
+    "query": "\n            INSERT INTO channel (id, team_id, hour, active)\n            VALUES (?1, ?2, ?3, ?4)\n            "
+  },
+  "91065b52153630a998b23036b258535e75b2dc3bf98658700ef70ab91d235012": {
+    "describe": {
+      "columns": [
+        {
+          "name": "word",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "neighbor",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "similarity",
+          "ordinal": 2,
+          "type_info": "Float"
+        },
+        {
+          "name": "percentile",
+          "ordinal": 3,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 2
+      }
+    },
+    "query": "\n            SELECT *\n            FROM nearby\n            WHERE word = ?1 AND neighbor = ?2\n            "
+  },
+  "9828731fc38815c51505bcf7794ee03c98dcf1993dfe51b1353b019f2dafe7d3": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "team_id",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "hour",
+          "ordinal": 2,
+          "type_info": "Int64"
+        },
+        {
+          "name": "active",
+          "ordinal": 3,
+          "type_info": "Bool"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "\n            SELECT *\n            FROM channel\n            WHERE id = ?\n            "
+  },
+  "99770269f71b614f4862303cbb7d0ec65f2c5557f9e4dd38ba06c03fa567931e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "channel_id",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "thread_ts",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "puzzle_number",
+          "ordinal": 3,
+          "type_info": "Int64"
+        },
+        {
+          "name": "date",
+          "ordinal": 4,
+          "type_info": "Text"
+        },
+        {
+          "name": "active",
+          "ordinal": 5,
+          "type_info": "Bool"
+        },
+        {
+          "name": "secret",
+          "ordinal": 6,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "\n            SELECT *\n            FROM game\n            WHERE id = ?\n            "
+  },
+  "de55654aae3728536f4e64ee4528520579f9a5e0a17e69ca6d61b87e431629a1": {
+    "describe": {
+      "columns": [
+        {
+          "name": "word",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "vec",
+          "ordinal": 1,
+          "type_info": "Blob"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "\n            SELECT *\n            FROM word2vec\n            WHERE word = ?\n            "
+  },
+  "e6a950a4512d8ee5ec2fc38489dcc2326204b0922b1f55249a8809ced40c52d1": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "team_id",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "hour",
+          "ordinal": 2,
+          "type_info": "Int64"
+        },
+        {
+          "name": "active",
+          "ordinal": 3,
+          "type_info": "Bool"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "\n            SELECT *\n            FROM channel\n            WHERE hour = ?\n            "
+  }
+}
