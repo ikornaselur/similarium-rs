@@ -90,7 +90,7 @@ mod test {
     fn test_randbelow() {
         let seed = &[1234];
         let mut rng = MT19937::new_with_slice_seed(seed);
-        let picker = SecretPicker::new(&"foobarbaz");
+        let picker = SecretPicker::new("foobarbaz");
 
         assert_eq!(picker.randbelow(&mut rng, 10), 7);
         assert_eq!(picker.randbelow(&mut rng, 10), 1);

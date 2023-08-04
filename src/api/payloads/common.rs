@@ -74,4 +74,3 @@ pub struct Enterprise {
     id: String,
     name: Option<String>,
 }
-
