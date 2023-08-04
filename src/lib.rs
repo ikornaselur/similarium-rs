@@ -1,6 +1,4 @@
-mod picker;
-#[rustfmt::skip]
-mod target_words;
+mod api;
+mod game;
 
-pub use picker::SecretPicker;
-pub use target_words::TARGET_WORDS;
+pub use api::app::run;

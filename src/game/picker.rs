@@ -1,4 +1,4 @@
-use crate::target_words::TARGET_WORDS;
+use crate::game::target_words::TARGET_WORDS;
 use mt19937::MT19937;
 use rand::RngCore;
 use sha2::{Digest, Sha512};
