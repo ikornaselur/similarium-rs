@@ -1,4 +1,6 @@
 mod auth;
+mod commands;
+mod events;
 
 use actix_web::{get, web, Error, HttpResponse};
 
@@ -10,7 +12,12 @@ async fn home_handler() -> Result<HttpResponse, Error> {
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
-    let scope = web::scope("/").service(home_handler);
+    let home_scope = web::scope("").service(home_handler).service(
+        web::scope("/slack")
+            .service(auth::scope())
+            .service(events::scope())
+            .service(commands::scope()),
+    );
 
-    conf.service(scope);
+    conf.service(home_scope);
 }

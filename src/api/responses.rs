@@ -1,101 +1,14 @@
+use crate::api::payloads::Team;
 use serde::Deserialize;
 
-#[derive(Deserialize, Debug)]
-pub struct User {
-    pub id: String,
-    pub username: String,
-    pub name: String,
-    pub team_id: String,
-}
-
 #[derive(Debug, Deserialize)]
-pub struct AuthedUser {
-    pub id: String,
-    pub scope: Option<String>,
+pub struct SlackOAuthResponse {
+    pub ok: bool,
+    pub error: Option<String>,
     pub access_token: Option<String>,
-    pub token_type: Option<String>,
-    pub refresh_token: Option<String>,
-    pub expires_in: Option<u32>,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Container {
-    pub r#type: String,
-    pub message_ts: String,
-    pub channel_id: String,
-    pub is_ephemeral: bool,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Team {
-    pub id: String,
-    pub domain: Option<String>,
-    pub name: Option<String>,
-}
-
-#[derive(Deserialize, Debug)]
-#[allow(dead_code)]
-pub struct Channel {
-    id: String,
-    name: String,
-}
-
-#[derive(Deserialize, Debug)]
-#[allow(dead_code)]
-pub struct Message {
-    bot_id: String,
-    r#type: String,
-    text: String,
-    user: String,
-    ts: String,
-    app_id: String,
-    blocks: Vec<serde_json::Value>,
-}
-
-#[derive(Deserialize, Debug)]
-#[allow(dead_code)]
-pub struct State {
-    values: serde_json::Value,
-}
-
-#[derive(Deserialize, Debug)]
-#[allow(dead_code)]
-pub struct Action {
-    r#type: String,
-    block_id: String,
-    action_id: String,
-    value: String,
-    action_ts: String,
-}
-
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-pub struct Enterprise {
-    id: String,
-    name: Option<String>,
-}
-
-#[derive(Deserialize, Debug)]
-#[allow(dead_code)]
-pub struct EventPayload {
-    r#type: String,
-    user: User,
-    api_app_token: String,
-    token: String,
-    container: Container,
-    trigger_id: String,
-    team: Team,
-    enterprise: Option<Enterprise>,
-    is_enterprise_install: bool,
-    channel: Channel,
-    message: Message,
-    state: State,
-    response_url: String,
-    actions: Vec<Action>,
-}
-
-#[derive(Deserialize, Debug)]
-#[allow(dead_code)]
-pub struct Event {
-    payload: EventPayload,
+    pub scope: Option<String>,
+    pub bot_user_id: Option<String>,
+    pub app_id: String,
+    pub team: Team,
+    pub is_enterprise_install: bool,
 }

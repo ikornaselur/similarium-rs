@@ -2,13 +2,8 @@ use actix_web::{error, web, App, HttpRequest, HttpResponse, HttpServer};
 use sqlx::postgres::PgPoolOptions;
 use std::env;
 
+use crate::api::config::Config;
 use crate::api::scopes;
-
-#[derive(Debug)]
-pub(crate) struct Config {
-    pub slack_client_id: String,
-    pub slack_client_secret: String,
-}
 
 async fn not_found(request: HttpRequest, text: String) -> HttpResponse {
     log::error!("404: {} {}", request.method(), request.path());
@@ -18,8 +13,9 @@ async fn not_found(request: HttpRequest, text: String) -> HttpResponse {
     HttpResponse::NotFound().body("Not Found")
 }
 
-pub struct AppState {
+pub(crate) struct AppState {
     pub db: sqlx::PgPool,
+    pub config: Config,
 }
 
 pub async fn run() -> anyhow::Result<()> {
@@ -53,10 +49,12 @@ pub async fn run() -> anyhow::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(json_cfg.clone())
-            .app_data(web::Data::new(AppState { db: pool.clone() }))
-            .app_data(web::Data::new(Config {
-                slack_client_id: slack_client_id.clone(),
-                slack_client_secret: slack_client_secret.clone(),
+            .app_data(web::Data::new(AppState {
+                db: pool.clone(),
+                config: Config {
+                    slack_client_id: slack_client_id.clone(),
+                    slack_client_secret: slack_client_secret.clone(),
+                },
             }))
             .configure(scopes::config)
             .default_service(web::get().to(not_found))
@@ -67,4 +65,3 @@ pub async fn run() -> anyhow::Result<()> {
 
     Ok(())
 }
-

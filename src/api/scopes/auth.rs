@@ -1,6 +1,8 @@
-use crate::api::app::{AppState, Config};
-use crate::api::responses::Team;
-use actix_web::{get, web, Error, HttpResponse, Scope};
+use crate::api::app::AppState;
+use crate::api::responses::SlackOAuthResponse;
+use crate::models::slack_bot::insert_slack_bot;
+use crate::models::SlackBot;
+use actix_web::{error, get, web, Error, HttpResponse, Scope};
 use serde::Deserialize;
 
 const OAUTH_API_URL: &str = "https://slack.com/api/oauth.v2.access";
@@ -10,23 +12,10 @@ struct OAuthRedirect {
     code: String,
 }
 
-#[derive(Debug, Deserialize)]
-struct SlackOAuthPayload {
-    ok: bool,
-    error: Option<String>,
-    access_token: Option<String>,
-    scope: Option<String>,
-    bot_user_id: Option<String>,
-    app_id: Option<String>,
-    team: Option<Team>,
-    is_enterprise_install: Option<bool>,
-}
-
 #[get("/oauth_redirect")]
 async fn get_oauth_redirect(
     info: web::Query<OAuthRedirect>,
     app_state: web::Data<AppState>,
-    config: web::Data<Config>,
 ) -> Result<HttpResponse, Error> {
     log::debug!("GET /auth/oauth_redirect");
 
@@ -38,44 +27,48 @@ async fn get_oauth_redirect(
         .post(OAUTH_API_URL)
         .send_form(&[
             ("code", code),
-            ("client_id", &config.slack_client_id),
-            ("client_secret", &config.slack_client_secret),
+            ("client_id", &app_state.config.slack_client_id),
+            ("client_secret", &app_state.config.slack_client_secret),
         ])
         .await
-        .unwrap();
+        .map_err(|e| {
+            log::error!("Error posting to Slack OAuth API: {}", e);
+            error::ErrorInternalServerError("OAuth failed")
+        })?;
 
-    let payload: SlackOAuthPayload = res.json().await.unwrap();
+    let payload: SlackOAuthResponse = res.json().await.map_err(|e| {
+        log::error!("Error parsing Slack OAuth response: {}", e);
+        error::ErrorInternalServerError("OAuth failed")
+    })?;
 
-    if !payload.ok {
-        log::error!(
-            "OAuth failed: {}",
-            payload.error.unwrap_or("Unknwon error".to_string())
-        );
-        return Ok(HttpResponse::Ok().body("OAuth failed"));
-    }
+    let slack_bot = SlackBot {
+        id: uuid::Uuid::new_v4(),
+        app_id: payload.app_id,
+        team_id: payload.team.id.clone(),
+        team_name: payload.team.name.clone(),
+        bot_token: payload.access_token,
+        bot_user_id: payload.bot_user_id,
+        bot_scopes: payload.scope,
+        is_enterprise_install: payload.is_enterprise_install,
+        installed_at: chrono::Utc::now().naive_utc(),
+        bot_id: None,
+        bot_refresh_token: None,
+        bot_token_expires_at: None,
+        enterprise_id: None,
+        enterprise_name: None,
+    };
 
-    sqlx::query!(
-        r#"
-        INSERT INTO 
-            slack_bots(client_id, app_id, team_id, team_name, bot_token, bot_user_id, bot_scopes, is_enterprise_install, installed_at)
-        VALUES 
-            ($1, $2, $3, $4, $5, $6, $7, $8, $9);
-        "#,
-        config.slack_client_id,
-        payload.app_id.unwrap(),
-        payload.team.as_ref().unwrap().id,
-        payload.team.as_ref().unwrap().name.as_ref().unwrap(),
-        payload.access_token.unwrap(),
-        payload.bot_user_id.unwrap(),
-        payload.scope.unwrap(),
-        payload.is_enterprise_install.unwrap(),
-        sqlx::types::chrono::Utc::now().naive_utc(),
-    ).execute(&app_state.db).await.unwrap();
+    insert_slack_bot(slack_bot, &app_state.db)
+        .await
+        .map_err(|e| {
+            log::error!("Error inserting Slack bot into database: {}", e);
+            error::ErrorInternalServerError("OAuth failed")
+        })?;
 
     // Redirect the user
     Ok(HttpResponse::Ok().body("Auth, sweet auth!"))
 }
 
-pub fn auth() -> Scope {
-    web::scope("auth").service(get_oauth_redirect)
+pub fn scope() -> Scope {
+    web::scope("/auth").service(get_oauth_redirect)
 }
