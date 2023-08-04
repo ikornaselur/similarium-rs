@@ -1,0 +1,10 @@
+DROP TABLE public.similarity_range;
+DROP TABLE public.nearby;
+DROP TABLE public.guess;
+DROP TABLE public.game_user_winner_association;
+DROP TABLE public.game_user_hint_association;
+DROP INDEX channel_thread_idx;
+DROP TABLE public.game;
+DROP TABLE public.word2vec;
+DROP TABLE public."user";
+DROP TABLE public.channel;
