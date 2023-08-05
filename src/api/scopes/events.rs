@@ -1,4 +1,4 @@
-use crate::api::payloads::Event;
+use crate::payloads::Event;
 use actix_web::{post, web, Error, HttpResponse, Scope};
 
 #[post("/")]

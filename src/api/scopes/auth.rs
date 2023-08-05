@@ -1,10 +1,8 @@
-use crate::api::{app::AppState, responses::SlackOAuthResponse};
+use crate::api::app::AppState;
 use crate::models::{slack_bot::insert_slack_bot, SlackBot};
 use crate::SimilariumError;
 use actix_web::{get, web, HttpResponse, Scope};
 use serde::Deserialize;
-
-const OAUTH_API_URL: &str = "https://slack.com/api/oauth.v2.access";
 
 #[derive(Deserialize, Debug)]
 struct OAuthRedirect {
@@ -20,18 +18,14 @@ async fn get_oauth_redirect(
 
     let code = &info.code;
 
-    // Post the code, along with client id and secret, to Slack's OAuth API
-    let client = awc::Client::default();
-    let mut res = client
-        .post(OAUTH_API_URL)
-        .send_form(&[
-            ("code", code),
-            ("client_id", &app_state.config.slack_client_id),
-            ("client_secret", &app_state.config.slack_client_secret),
-        ])
+    let payload = app_state
+        .slack_client
+        .post_oauth_code(
+            code,
+            &app_state.config.slack_client_id,
+            &app_state.config.slack_client_secret,
+        )
         .await?;
-
-    let payload: SlackOAuthResponse = res.json().await?;
 
     let slack_bot = SlackBot {
         id: uuid::Uuid::new_v4(),

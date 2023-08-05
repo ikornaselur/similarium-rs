@@ -1,4 +1,4 @@
-use crate::api::payloads::Team;
+use crate::payloads::Team;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]

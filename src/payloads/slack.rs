@@ -1,6 +1,4 @@
-use crate::api::payloads::common::{
-    Action, Channel, Container, Enterprise, Message, State, Team, User,
-};
+use crate::payloads::common::{Action, Channel, Container, Enterprise, Message, State, Team, User};
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]

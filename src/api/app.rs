@@ -4,6 +4,7 @@ use std::env;
 
 use crate::api::config::Config;
 use crate::api::scopes;
+use crate::slack_client::SlackClient;
 use crate::SimilariumError;
 
 async fn not_found(request: HttpRequest, text: String) -> HttpResponse {
@@ -17,6 +18,7 @@ async fn not_found(request: HttpRequest, text: String) -> HttpResponse {
 pub(crate) struct AppState {
     pub db: sqlx::PgPool,
     pub config: Config,
+    pub slack_client: SlackClient,
 }
 
 pub async fn run() -> Result<(), SimilariumError> {
@@ -56,6 +58,7 @@ pub async fn run() -> Result<(), SimilariumError> {
                     slack_client_id: slack_client_id.clone(),
                     slack_client_secret: slack_client_secret.clone(),
                 },
+                slack_client: SlackClient::new(),
             }))
             .configure(scopes::config)
             .default_service(web::get().to(not_found))
