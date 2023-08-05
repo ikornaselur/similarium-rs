@@ -37,8 +37,6 @@ impl SlackClient {
             ])
             .await?;
 
-        log::info!("Slack API response: {:?}", res);
-
         if res.status().is_success() {
             Ok(())
         } else {

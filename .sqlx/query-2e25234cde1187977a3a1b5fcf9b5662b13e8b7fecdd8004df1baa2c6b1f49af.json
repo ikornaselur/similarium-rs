@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO \n            slack_bots(app_id, enterprise_id, enterprise_name, team_id, team_name, bot_token, bot_id, bot_user_id, bot_scopes, bot_refresh_token, bot_token_expires_at, is_enterprise_install, installed_at)\n        VALUES \n            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Timestamp",
+        "Bool",
+        "Timestamp"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2e25234cde1187977a3a1b5fcf9b5662b13e8b7fecdd8004df1baa2c6b1f49af"
+}
