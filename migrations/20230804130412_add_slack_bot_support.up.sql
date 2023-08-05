@@ -1,7 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE
-IF NOT EXISTS public.slack_bots (
+IF NOT EXISTS slack_bots (
     id uuid DEFAULT uuid_generate_v4() NOT NULL,
     app_id varchar(32) NOT NULL,
     enterprise_id varchar(32),

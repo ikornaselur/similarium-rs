@@ -1,5 +1,5 @@
 CREATE TABLE
-public.channel (
+channel (
     id text NOT NULL,
     team_id text NOT NULL,
     hour bigint NOT NULL,
@@ -8,7 +8,7 @@ public.channel (
 );
 
 CREATE TABLE
-public."user" (
+"user" (
     id text NOT NULL,
     profile_photo text NOT NULL,
     username text NOT NULL,
@@ -16,14 +16,14 @@ public."user" (
 );
 
 CREATE TABLE
-public.word2vec (
+word2vec (
     word text NOT NULL,
     vec bytea NOT NULL,
     PRIMARY KEY (word)
 );
 
 CREATE TABLE
-public.game (
+game (
     id uuid DEFAULT uuid_generate_v4() NOT NULL,
     channel_id text NOT NULL,
     thread_ts text NOT NULL,
@@ -33,37 +33,37 @@ public.game (
     secret text NOT NULL,
     hint text,
     PRIMARY KEY (id),
-    FOREIGN KEY (channel_id) REFERENCES public.channel (id)
+    FOREIGN KEY (channel_id) REFERENCES channel (id)
 );
 
-CREATE INDEX channel_thread_idx ON public.game USING btree (
+CREATE INDEX channel_thread_idx ON game USING btree (
     channel_id, thread_ts
 );
 
 CREATE TABLE
-public.game_user_hint_association (
+game_user_hint_association (
     game_id uuid NOT NULL,
     user_id text NOT NULL,
     created bigint NOT NULL,
     guess_idx integer NOT NULL,
     PRIMARY KEY (game_id, user_id),
-    FOREIGN KEY (game_id) REFERENCES public.game (id),
-    FOREIGN KEY (user_id) REFERENCES public."user" (id)
+    FOREIGN KEY (game_id) REFERENCES game (id),
+    FOREIGN KEY (user_id) REFERENCES "user" (id)
 );
 
 CREATE TABLE
-public.game_user_winner_association (
+game_user_winner_association (
     game_id uuid NOT NULL,
     user_id text NOT NULL,
     guess_idx bigint NOT NULL,
     created bigint NOT NULL,
     PRIMARY KEY (game_id, user_id),
-    FOREIGN KEY (game_id) REFERENCES public.game (id),
-    FOREIGN KEY (user_id) REFERENCES public."user" (id)
+    FOREIGN KEY (game_id) REFERENCES game (id),
+    FOREIGN KEY (user_id) REFERENCES "user" (id)
 );
 
 CREATE TABLE
-public.guess (
+guess (
     id uuid DEFAULT uuid_generate_v4() NOT NULL,
     game_id uuid NOT NULL,
     updated bigint NOT NULL,
@@ -74,23 +74,23 @@ public.guess (
     idx bigint NOT NULL,
     latest_guess_user_id text NOT NULL,
     PRIMARY KEY (id),
-    FOREIGN KEY (game_id) REFERENCES public.game (id),
-    FOREIGN KEY (latest_guess_user_id) REFERENCES public."user" (id)
+    FOREIGN KEY (game_id) REFERENCES game (id),
+    FOREIGN KEY (latest_guess_user_id) REFERENCES "user" (id)
 );
 
 CREATE TABLE
-public.nearby (
+nearby (
     word text NOT NULL,
     neighbor text NOT NULL,
     similarity double precision NOT NULL,
     percentile bigint NOT NULL,
     PRIMARY KEY (word, neighbor),
-    FOREIGN KEY (word) REFERENCES public.word2vec (word),
-    FOREIGN KEY (neighbor) REFERENCES public.word2vec (word)
+    FOREIGN KEY (word) REFERENCES word2vec (word),
+    FOREIGN KEY (neighbor) REFERENCES word2vec (word)
 );
 
 CREATE TABLE
-public.similarity_range (
+similarity_range (
     word text NOT NULL,
     top double precision NOT NULL,
     top10 double precision NOT NULL,
