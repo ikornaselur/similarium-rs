@@ -2,18 +2,17 @@ use crate::{SimilariumError, SimilariumErrorType};
 use chrono::NaiveTime;
 
 #[derive(Debug, Eq, PartialEq)]
-enum Command {
+pub enum Command {
     Help,
     ManualStart,
     ManualEnd,
     Start(NaiveTime),
     Stop,
+    Invalid(String),
 }
 
-fn parse_command(text: &str) -> Result<Command, SimilariumError> {
-    let (first, rest) = text.split_once(' ').unwrap_or((text, ""));
-
-    Ok(match (first, rest) {
+pub fn parse_command(text: &str) -> Result<Command, SimilariumError> {
+    Ok(match text.split_once(' ').unwrap_or((text, "")) {
         ("help", _) => Command::Help,
         ("start", time) => {
             if time.is_empty() {
@@ -24,15 +23,15 @@ fn parse_command(text: &str) -> Result<Command, SimilariumError> {
                     error_type: SimilariumErrorType::ValidationError,
                 })?;
             }
-            Command::Start(NaiveTime::parse_from_str(time, "%H:%M")?)
+            match NaiveTime::parse_from_str(time, "%H:%M") {
+                Ok(time) => Command::Start(time),
+                Err(_) => Command::Invalid(format!("Invalid time: {time}")),
+            }
         }
         ("stop", _) => Command::Stop,
         ("manual", "start") => Command::ManualStart,
         ("manual", "end") => Command::ManualEnd,
-        (_, _) => Err(SimilariumError {
-            message: Some(format!("Unknown command: {}", first)),
-            error_type: SimilariumErrorType::ValidationError,
-        })?,
+        (first, rest) => Command::Invalid(format!("Unknown command: {first} {rest}")),
     })
 }
 
@@ -53,8 +52,8 @@ mod tests {
     #[test]
     fn test_parse_command_returns_error_on_unknown_command() {
         assert_eq!(
-            parse_command("foobar").unwrap_err().error_type,
-            SimilariumErrorType::ValidationError
+            parse_command("foobar").unwrap(),
+            Command::Invalid("Unknown command: foobar".to_string())
         );
     }
 
@@ -69,14 +68,12 @@ mod tests {
     #[test]
     fn test_parse_command_start_raises_with_invalid_time() {
         assert_eq!(
-            parse_command("start 25:00").unwrap_err().error_type,
-            SimilariumErrorType::ValidationError
+            parse_command("start 25:00").unwrap(),
+            Command::Invalid("Invalid time: 25:00".to_string())
         );
         assert_eq!(
-            parse_command("start around midnight maybe?")
-                .unwrap_err()
-                .error_type,
-            SimilariumErrorType::ValidationError
+            parse_command("start around midnight maybe?").unwrap(),
+            Command::Invalid("Invalid time: around midnight maybe?".to_string())
         );
     }
 
@@ -101,8 +98,8 @@ mod tests {
     #[test]
     fn test_parse_command_manual_unknown() {
         assert_eq!(
-            parse_command("manual foobar").unwrap_err().error_type,
-            SimilariumErrorType::ValidationError
+            parse_command("manual foobar").unwrap(),
+            Command::Invalid("Unknown command: manual foobar".to_string())
         );
     }
 }
