@@ -1,6 +1,9 @@
-mod picker;
-#[rustfmt::skip]
-mod target_words;
+mod api;
+mod error;
+mod game;
+mod models;
+mod payloads;
+mod slack_client;
 
-pub use picker::SecretPicker;
-pub use target_words::TARGET_WORDS;
+pub use api::app::run;
+pub use error::{SimilariumError, SimilariumErrorType};

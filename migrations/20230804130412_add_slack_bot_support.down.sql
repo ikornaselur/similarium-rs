@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS slack_bots;
+DROP EXTENSION IF EXISTS "uuid-ossp";

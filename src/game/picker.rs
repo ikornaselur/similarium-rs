@@ -1,4 +1,4 @@
-use crate::target_words::TARGET_WORDS;
+use crate::game::target_words::TARGET_WORDS;
 use mt19937::MT19937;
 use rand::RngCore;
 use sha2::{Digest, Sha512};
@@ -25,6 +25,7 @@ pub struct SecretPicker {
 ///
 /// SecretPicker uses the same MT19937 algorithm behind the scenes as is used in Python for the
 /// random number generator
+#[allow(unused)]
 impl SecretPicker {
     pub fn new(seed: &str) -> Self {
         let mut seed_bytes = seed.as_bytes().to_vec();
@@ -90,7 +91,7 @@ mod test {
     fn test_randbelow() {
         let seed = &[1234];
         let mut rng = MT19937::new_with_slice_seed(seed);
-        let picker = SecretPicker::new(&"foobarbaz");
+        let picker = SecretPicker::new("foobarbaz");
 
         assert_eq!(picker.randbelow(&mut rng, 10), 7);
         assert_eq!(picker.randbelow(&mut rng, 10), 1);
