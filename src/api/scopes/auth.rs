@@ -1,8 +1,7 @@
-use crate::api::app::AppState;
-use crate::api::responses::SlackOAuthResponse;
-use crate::models::slack_bot::insert_slack_bot;
-use crate::models::SlackBot;
-use actix_web::{error, get, web, Error, HttpResponse, Scope};
+use crate::api::{app::AppState, responses::SlackOAuthResponse};
+use crate::models::{slack_bot::insert_slack_bot, SlackBot};
+use crate::SimilariumError;
+use actix_web::{get, web, HttpResponse, Scope};
 use serde::Deserialize;
 
 const OAUTH_API_URL: &str = "https://slack.com/api/oauth.v2.access";
@@ -16,7 +15,7 @@ struct OAuthRedirect {
 async fn get_oauth_redirect(
     info: web::Query<OAuthRedirect>,
     app_state: web::Data<AppState>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, SimilariumError> {
     log::debug!("GET /auth/oauth_redirect");
 
     let code = &info.code;
@@ -30,16 +29,9 @@ async fn get_oauth_redirect(
             ("client_id", &app_state.config.slack_client_id),
             ("client_secret", &app_state.config.slack_client_secret),
         ])
-        .await
-        .map_err(|e| {
-            log::error!("Error posting to Slack OAuth API: {}", e);
-            error::ErrorInternalServerError("OAuth failed")
-        })?;
+        .await?;
 
-    let payload: SlackOAuthResponse = res.json().await.map_err(|e| {
-        log::error!("Error parsing Slack OAuth response: {}", e);
-        error::ErrorInternalServerError("OAuth failed")
-    })?;
+    let payload: SlackOAuthResponse = res.json().await?;
 
     let slack_bot = SlackBot {
         id: uuid::Uuid::new_v4(),
@@ -58,12 +50,7 @@ async fn get_oauth_redirect(
         enterprise_name: None,
     };
 
-    insert_slack_bot(slack_bot, &app_state.db)
-        .await
-        .map_err(|e| {
-            log::error!("Error inserting Slack bot into database: {}", e);
-            error::ErrorInternalServerError("OAuth failed")
-        })?;
+    insert_slack_bot(slack_bot, &app_state.db).await?;
 
     // Redirect the user
     Ok(HttpResponse::Ok().body("Auth, sweet auth!"))

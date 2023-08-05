@@ -44,6 +44,7 @@ pub async fn insert_slack_bot(slack_bot: SlackBot, db: &sqlx::PgPool) -> Result<
     )
     .execute(db)
     .await?;
+
     Ok(())
 }
 
@@ -51,9 +52,9 @@ pub async fn get_slack_bot_token(
     team_id: &str,
     api_app_id: &str,
     db: &sqlx::PgPool,
-) -> Result<Option<String>, sqlx::Error> {
+) -> Result<String, sqlx::Error> {
     // Get the bot token
-    let token = sqlx::query_scalar!(
+    sqlx::query_scalar!(
         r#"
         SELECT
             bot_token
@@ -69,7 +70,6 @@ pub async fn get_slack_bot_token(
         api_app_id,
     )
     .fetch_one(db)
-    .await?;
-
-    Ok(token)
+    .await?
+    .ok_or(sqlx::Error::RowNotFound)
 }

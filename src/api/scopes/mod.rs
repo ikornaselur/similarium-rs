@@ -12,12 +12,11 @@ async fn home_handler() -> Result<HttpResponse, Error> {
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
-    let home_scope = web::scope("").service(home_handler).service(
-        web::scope("/slack")
-            .service(auth::scope())
-            .service(events::scope())
-            .service(commands::scope()),
-    );
+    let home_scope = web::scope("")
+        .service(home_handler)
+        .service(auth::scope())
+        .service(events::scope())
+        .service(commands::scope());
 
     conf.service(home_scope);
 }

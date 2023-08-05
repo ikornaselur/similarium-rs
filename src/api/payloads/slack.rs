@@ -13,6 +13,7 @@ pub struct CommandPayload {
 }
 
 #[derive(Deserialize, Debug)]
+#[allow(unused)]
 pub struct EventPayload {
     r#type: String,
     user: User,
@@ -31,6 +32,7 @@ pub struct EventPayload {
 }
 
 #[derive(Deserialize, Debug)]
+#[allow(unused)]
 pub struct Event {
     payload: EventPayload,
 }

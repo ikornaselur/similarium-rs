@@ -1,4 +1,5 @@
 #[rustfmt::skip]
+#[allow(unused)]
 pub const TARGET_WORDS: &[&str] = &[
     "abandon", "ability", "able", "about", "above", "abroad", "absence", "absolute",
     "absolutely", "absorb", "abstract", "academic", "accelerate", "accent", "accept",

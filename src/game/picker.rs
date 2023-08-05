@@ -25,6 +25,7 @@ pub struct SecretPicker {
 ///
 /// SecretPicker uses the same MT19937 algorithm behind the scenes as is used in Python for the
 /// random number generator
+#[allow(unused)]
 impl SecretPicker {
     pub fn new(seed: &str) -> Self {
         let mut seed_bytes = seed.as_bytes().to_vec();

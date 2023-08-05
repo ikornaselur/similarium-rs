@@ -4,6 +4,7 @@ use std::env;
 
 use crate::api::config::Config;
 use crate::api::scopes;
+use crate::SimilariumError;
 
 async fn not_found(request: HttpRequest, text: String) -> HttpResponse {
     log::error!("404: {} {}", request.method(), request.path());
@@ -18,7 +19,7 @@ pub(crate) struct AppState {
     pub config: Config,
 }
 
-pub async fn run() -> anyhow::Result<()> {
+pub async fn run() -> Result<(), SimilariumError> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or(":info"));
 
     log::info!("Running migrations");

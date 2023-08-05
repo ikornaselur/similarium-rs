@@ -1,53 +1,43 @@
 use crate::api::app::AppState;
 use crate::api::payloads::CommandPayload;
-use crate::models::slack_bot::get_slack_bot_token;
-use actix_web::{error, post, web, Error, HttpResponse, Scope};
+use crate::slack_client::SlackClient;
+use crate::SimilariumError;
+use actix_web::{post, web, HttpResponse, Scope};
 
-const POST_MESSAGE_URL: &str = "https://slack.com/api/chat.postMessage";
-
-#[post("/{command}")]
-async fn post_commands(
-    path: web::Path<String>,
+#[post("/similarium")]
+async fn post_similarium_command(
     form: web::Form<CommandPayload>,
     app_state: web::Data<AppState>,
-) -> Result<HttpResponse, Error> {
-    let command = path.into_inner();
+) -> Result<HttpResponse, SimilariumError> {
+    log::debug!("POST /slack/similarium");
+
     let payload = form.into_inner();
 
-    log::debug!("POST /slack/commands/{}", command);
+    let client = SlackClient::new(
+        payload.team_id.clone(),
+        payload.api_app_id.clone(),
+        payload.channel_id.clone(),
+        &app_state.db,
+    )
+    .await?;
 
-    // Get the bot token
-    let token = get_slack_bot_token(&payload.team_id, &payload.api_app_id, &app_state.db)
-        .await
-        .map_err(|e| {
-            log::error!("Error getting bot token: {}", e);
-            error::ErrorNotFound("Installation not found for team")
-        })?;
-
-    // Post a message, with the text, to the channel using the post message endpoint
-    let client = awc::Client::default();
-    client
-        .post(POST_MESSAGE_URL)
-        .send_form(&[
-            ("token", token),
-            ("channel", Some(payload.channel_id)),
-            (
-                "text",
-                Some(format!(
+    match payload.text.to_lowercase().trim() {
+        "help" => {
+            client.post_message("Help text".to_string()).await?;
+        }
+        _ => {
+            client
+                .post_message(format!(
                     "Hey <@{}>! You said: {}",
                     payload.user_id, payload.text
-                )),
-            ),
-        ])
-        .await
-        .map_err(|e| {
-            log::error!("Error posting to Slack API: {}", e);
-            error::ErrorInternalServerError("Error posting message")
-        })?;
+                ))
+                .await?
+        }
+    }
 
     Ok(HttpResponse::Ok().into())
 }
 
 pub fn scope() -> Scope {
-    web::scope("/commands").service(post_commands)
+    web::scope("/commands").service(post_similarium_command)
 }
