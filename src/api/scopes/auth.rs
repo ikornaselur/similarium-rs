@@ -3,6 +3,7 @@ use crate::models::{slack_bot::insert_slack_bot, SlackBot};
 use crate::SimilariumError;
 use actix_web::{get, web, HttpResponse, Scope};
 use serde::Deserialize;
+use time::OffsetDateTime;
 
 #[derive(Deserialize, Debug)]
 struct OAuthRedirect {
@@ -36,7 +37,7 @@ async fn get_oauth_redirect(
         bot_user_id: payload.bot_user_id,
         bot_scopes: payload.scope,
         is_enterprise_install: payload.is_enterprise_install,
-        installed_at: chrono::Utc::now().naive_utc(),
+        installed_at: OffsetDateTime::now_utc(),
         bot_id: None,
         bot_refresh_token: None,
         bot_token_expires_at: None,
