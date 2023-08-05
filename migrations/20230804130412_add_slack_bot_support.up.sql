@@ -13,9 +13,9 @@ IF NOT EXISTS slack_bots (
     bot_user_id varchar(32),
     bot_scopes varchar(1000),
     bot_refresh_token varchar(200),
-    bot_token_expires_at timestamp without time zone,
+    bot_token_expires_at timestamp with time zone,
     is_enterprise_install boolean NOT NULL,
-    installed_at timestamp without time zone NOT NULL,
+    installed_at timestamp with time zone NOT NULL,
 
     PRIMARY KEY (id)
 );

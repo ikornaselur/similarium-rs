@@ -15,9 +15,9 @@
         "Varchar",
         "Varchar",
         "Varchar",
-        "Timestamp",
+        "Timestamptz",
         "Bool",
-        "Timestamp"
+        "Timestamptz"
       ]
     },
     "nullable": []
