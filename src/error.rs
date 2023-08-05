@@ -2,7 +2,7 @@ use actix_web::{http::StatusCode, HttpResponse, ResponseError};
 use serde::Serialize;
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum SimilariumErrorType {
     NotFound,
     SlackApiError,
@@ -11,8 +11,9 @@ pub enum SimilariumErrorType {
     EnvError,
     IOError,
     Error,
+    ValidationError,
 }
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct SimilariumError {
     pub message: Option<String>,
     pub error_type: SimilariumErrorType,
@@ -51,6 +52,7 @@ impl ResponseError for SimilariumError {
             SimilariumErrorType::JsonParseError => StatusCode::INTERNAL_SERVER_ERROR,
             SimilariumErrorType::NotFound => StatusCode::NOT_FOUND,
             SimilariumErrorType::SlackApiError => StatusCode::INTERNAL_SERVER_ERROR,
+            SimilariumErrorType::ValidationError => StatusCode::BAD_REQUEST,
         }
     }
 
@@ -147,6 +149,16 @@ impl From<std::io::Error> for SimilariumError {
         SimilariumError {
             message: Some("Unexpected IO error".to_string()),
             error_type: SimilariumErrorType::IOError,
+        }
+    }
+}
+
+impl From<chrono::ParseError> for SimilariumError {
+    fn from(error: chrono::ParseError) -> Self {
+        log::error!("Error parsing date: {}", error);
+        SimilariumError {
+            message: Some("Invalid date or time".to_string()),
+            error_type: SimilariumErrorType::ValidationError,
         }
     }
 }

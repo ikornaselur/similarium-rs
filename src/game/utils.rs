@@ -28,7 +28,7 @@ pub fn get_puzzle_date(puzzle_number: i64) -> String {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use chrono::NaiveDate;
 
