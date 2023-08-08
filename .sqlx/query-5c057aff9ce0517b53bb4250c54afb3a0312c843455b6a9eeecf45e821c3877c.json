@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT word, top, top10, rest\n            FROM similarity_range\n            WHERE word = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "word",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "top",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 2,
+        "name": "top10",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 3,
+        "name": "rest",
+        "type_info": "Float8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "5c057aff9ce0517b53bb4250c54afb3a0312c843455b6a9eeecf45e821c3877c"
+}
