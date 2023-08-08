@@ -1,4 +1,5 @@
 use crate::slack_client::responses::SlackOAuthResponse;
+use crate::slack_client::Block;
 use crate::{SimilariumError, SimilariumErrorType};
 
 const POST_MESSAGE_URL: &str = "https://slack.com/api/chat.postMessage";
@@ -20,22 +21,44 @@ impl SlackClient {
         text: &str,
         channel_id: &str,
         token: &str,
+        blocks: Option<Vec<Block>>,
     ) -> Result<(), SimilariumError> {
-        let res = self
-            .client
-            .post(POST_MESSAGE_URL)
-            .send_form(&[("token", token), ("channel", channel_id), ("text", text)])
-            .await?;
-
-        if res.status().is_success() {
-            Ok(())
+        let mut res = if let Some(blocks) = blocks {
+            self.client
+                .post(POST_MESSAGE_URL)
+                .send_form(&[
+                    ("token", token),
+                    ("channel", channel_id),
+                    ("text", text),
+                    ("blocks", &serde_json::to_string(&blocks).unwrap()),
+                ])
+                .await?
         } else {
+            self.client
+                .post(POST_MESSAGE_URL)
+                .send_form(&[("token", token), ("channel", channel_id), ("text", text)])
+                .await?
+        };
+
+        if !res.status().is_success() {
             log::error!("Error posting to Slack API: {}", text);
-            Err(SimilariumError {
+            return Err(SimilariumError {
                 message: Some(format!("Error posting to Slack API: {}", text)),
                 error_type: SimilariumErrorType::SlackApiError,
-            })
+            });
         }
+
+        let payload = res.json::<serde_json::Value>().await?;
+        let ok = payload["ok"].as_bool().unwrap_or(false);
+        if !ok {
+            log::error!("Error posting to Slack API: {}", payload);
+            return Err(SimilariumError {
+                message: Some(format!("Error posting to Slack API: {}", payload)),
+                error_type: SimilariumErrorType::SlackApiError,
+            });
+        }
+
+        Ok(())
     }
 
     pub async fn post_oauth_code(

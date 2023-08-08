@@ -15,14 +15,14 @@ enum BlockType {
 
 #[derive(Serialize, Deserialize, Debug)]
 enum TextType {
-    #[serde(rename = "mrkdown")]
+    #[serde(rename = "mrkdwn")]
     Markdown,
     #[serde(rename = "plain_text")]
     PlainText,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Text {
+pub struct Text {
     r#type: TextType,
     text: String,
     emoji: bool,
@@ -59,7 +59,7 @@ enum ElementType {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Element {
+pub struct Element {
     r#type: ElementType,
     action_id: String,
     min_length: Option<u32>,
@@ -76,7 +76,7 @@ impl Element {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Block {
+pub struct Block {
     r#type: BlockType,
     #[serde(skip_serializing_if = "Option::is_none")]
     text: Option<Text>,
@@ -132,6 +132,11 @@ impl Block {
             label: Some(label),
             ..Default::default()
         }
+    }
+    pub fn guess_input() -> Self {
+        let element = Element::new("guess", Some(2));
+        let label = Text::label("Guess");
+        Block::input("guess", true, element, label)
     }
 }
 
