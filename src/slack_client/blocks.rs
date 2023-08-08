@@ -149,20 +149,34 @@ mod tests {
     #[test]
     fn test_serialising_header() {
         let block = Block::header("Hello");
-        let json = serde_json::to_string(&block).unwrap();
+        let json = serde_json::to_string_pretty(&block).unwrap();
         assert_eq!(
             json,
-            r#"{"type":"header","text":{"type":"plain_text","text":"Hello","emoji":true}}"#
+            r#"{
+  "type": "header",
+  "text": {
+    "type": "plain_text",
+    "text": "Hello",
+    "emoji": true
+  }
+}"#
         );
     }
 
     #[test]
     fn test_serialising_section() {
         let block = Block::section("Hello");
-        let json = serde_json::to_string(&block).unwrap();
+        let json = serde_json::to_string_pretty(&block).unwrap();
         assert_eq!(
             json,
-            r#"{"type":"section","text":{"type":"mrkdown","text":"Hello","emoji":true}}"#
+            r#"{
+  "type": "section",
+  "text": {
+    "type": "mrkdown",
+    "text": "Hello",
+    "emoji": true
+  }
+}"#
         );
     }
 
@@ -172,10 +186,24 @@ mod tests {
         let label = Text::label("label");
 
         let block = Block::input("block-id", true, element, label);
-        let json = serde_json::to_string(&block).unwrap();
+        let json = serde_json::to_string_pretty(&block).unwrap();
         assert_eq!(
             json,
-            r#"{"type":"input","block_id":"block-id","dispatch_action":true,"element":{"type":"plain_text_input","action_id":"action-id","min_length":2},"label":{"type":"plain_text","text":"label","emoji":true}}"#
+            r#"{
+  "type": "input",
+  "block_id": "block-id",
+  "dispatch_action": true,
+  "element": {
+    "type": "plain_text_input",
+    "action_id": "action-id",
+    "min_length": 2
+  },
+  "label": {
+    "type": "plain_text",
+    "text": "label",
+    "emoji": true
+  }
+}"#
         );
     }
 }
