@@ -1,3 +1,4 @@
+use crate::models::SimilarityRange;
 use time::{
     macros::{datetime, format_description},
     OffsetDateTime,
@@ -23,6 +24,25 @@ pub fn get_puzzle_date(puzzle_number: i64) -> Result<String, time::Error> {
     let format = format_description!("[weekday] [month repr:long] [day padding:none]");
 
     Ok(base_date.format(&format)?.to_string())
+}
+
+/// Generate the header for the puzzle of the day
+pub fn get_header_text(date: OffsetDateTime) -> Result<String, time::Error> {
+    let puzzle_number = get_puzzle_number(date);
+    let puzzle_date = get_puzzle_date(puzzle_number)?;
+    Ok(format!("{puzzle_date} - Puzzle number {puzzle_number}"))
+}
+
+/// Generate header body of a game for Slack message
+pub fn get_header_body(similarity_range: SimilarityRange) -> String {
+    format!(
+        "The nearest word has a similarity of {:.02}, \
+        the tenth-nearest has a similarity of {:.02} and \
+        the one thousandth nearest word has a similarity of {:.02}.",
+        similarity_range.top * 100f64,
+        similarity_range.top10 * 100f64,
+        similarity_range.rest * 100f64,
+    )
 }
 
 #[cfg(test)]
@@ -51,4 +71,38 @@ mod tests {
             String::from("Sunday November 13")
         );
     }
+
+    #[test]
+    fn test_get_header_text() {
+        let datetime = datetime!(2022-05-07 00:00:00 UTC);
+        assert_eq!(
+            get_header_text(datetime).unwrap(),
+            String::from("Saturday May 7 - Puzzle number 1")
+        );
+
+        let datetime = datetime!(2022-11-13 00:00:00 UTC);
+        assert_eq!(
+            get_header_text(datetime).unwrap(),
+            String::from("Sunday November 13 - Puzzle number 191")
+        );
+    }
+
+    #[test]
+    fn test_get_header_body() {
+        let similarity_range = SimilarityRange {
+            word: "djamm".to_string(),
+            top: 0.6731,
+            top10: 0.2759,
+            rest: 0.1312,
+        };
+        assert_eq!(
+            get_header_body(similarity_range),
+            String::from(
+                "The nearest word has a similarity of 67.31, \
+                the tenth-nearest has a similarity of 27.59 and \
+                the one thousandth nearest word has a similarity of 13.12."
+            )
+        );
+    }
+
 }
