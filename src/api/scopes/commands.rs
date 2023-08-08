@@ -1,6 +1,6 @@
 use crate::api::app::AppState;
 use crate::api::utils::{parse_command, Command};
-use crate::models::slack_bot::get_slack_bot_token;
+use crate::models::SlackBot;
 use crate::payloads::CommandPayload;
 use crate::SimilariumError;
 use actix_web::{post, web, HttpResponse, Scope};
@@ -14,7 +14,8 @@ async fn post_similarium_command(
     log::debug!("POST /slack/similarium");
 
     let payload = form.into_inner();
-    let token = get_slack_bot_token(&payload.team_id, &payload.api_app_id, &app_state.db).await?;
+    let token =
+        SlackBot::get_slack_bot_token(&payload.team_id, &payload.api_app_id, &app_state.db).await?;
     let command = parse_command(&payload.text)?;
 
     match command {
