@@ -4,6 +4,7 @@ use crate::models::slack_bot::get_slack_bot_token;
 use crate::payloads::CommandPayload;
 use crate::SimilariumError;
 use actix_web::{post, web, HttpResponse, Scope};
+use time::macros::format_description;
 
 #[post("/similarium")]
 async fn post_similarium_command(
@@ -24,10 +25,11 @@ async fn post_similarium_command(
                 .await?;
         }
         Command::Start(time) => {
+            let format = format_description!("[hour]:[minute]");
             app_state
                 .slack_client
                 .post_message(
-                    &format!("Starting the game at {}", time.format("%H:%M")),
+                    &format!("Starting the game at {}", time.format(&format)?),
                     &payload.channel_id,
                     &token,
                 )

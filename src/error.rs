@@ -153,11 +153,21 @@ impl From<std::io::Error> for SimilariumError {
     }
 }
 
-impl From<chrono::ParseError> for SimilariumError {
-    fn from(error: chrono::ParseError) -> Self {
-        log::error!("Error parsing date: {}", error);
+impl From<time::error::InvalidFormatDescription> for SimilariumError {
+    fn from(error: time::error::InvalidFormatDescription) -> Self {
+        log::error!("Error parsing time: {}", error);
         SimilariumError {
-            message: Some("Invalid date or time".to_string()),
+            message: Some("Unable to parse time".to_string()),
+            error_type: SimilariumErrorType::ValidationError,
+        }
+    }
+}
+
+impl From<time::error::Format> for SimilariumError {
+    fn from(error: time::error::Format) -> Self {
+        log::error!("Error formatting time: {}", error);
+        SimilariumError {
+            message: Some("Unable to format time".to_string()),
             error_type: SimilariumErrorType::ValidationError,
         }
     }

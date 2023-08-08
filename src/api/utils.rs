@@ -1,12 +1,12 @@
 use crate::{SimilariumError, SimilariumErrorType};
-use chrono::NaiveTime;
+use time::{macros::format_description, Time};
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Command {
     Help,
     ManualStart,
     ManualEnd,
-    Start(NaiveTime),
+    Start(Time),
     Stop,
     Invalid(String),
 }
@@ -23,7 +23,7 @@ pub fn parse_command(text: &str) -> Result<Command, SimilariumError> {
                     error_type: SimilariumErrorType::ValidationError,
                 })?;
             }
-            match NaiveTime::parse_from_str(time, "%H:%M") {
+            match Time::parse(time, &format_description!("[hour]:[minute]")) {
                 Ok(time) => Command::Start(time),
                 Err(_) => Command::Invalid(format!("Invalid time: {time}")),
             }
@@ -31,13 +31,17 @@ pub fn parse_command(text: &str) -> Result<Command, SimilariumError> {
         ("stop", _) => Command::Stop,
         ("manual", "start") => Command::ManualStart,
         ("manual", "end") => Command::ManualEnd,
-        (first, rest) => Command::Invalid(format!("Unknown command: {first} {rest}")),
+        (first, rest) if !rest.is_empty() => {
+            Command::Invalid(format!("Unknown command: {first} {rest}"))
+        }
+        (first, _) => Command::Invalid(format!("Unknown command: {first}")),
     })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use time::macros::time;
 
     #[test]
     fn test_parse_command() {
@@ -54,6 +58,10 @@ mod tests {
         assert_eq!(
             parse_command("foobar").unwrap(),
             Command::Invalid("Unknown command: foobar".to_string())
+        );
+        assert_eq!(
+            parse_command("foo bar").unwrap(),
+            Command::Invalid("Unknown command: foo bar".to_string())
         );
     }
 
@@ -81,7 +89,7 @@ mod tests {
     fn test_parse_command_start_parses_time_correctly() {
         assert_eq!(
             parse_command("start 23:59").unwrap(),
-            Command::Start(NaiveTime::from_hms_opt(23, 59, 0).unwrap())
+            Command::Start(time!(23:59))
         );
     }
 
