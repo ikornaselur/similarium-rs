@@ -1,7 +1,7 @@
 use crate::api::app::AppState;
 use crate::api::utils::{parse_command, Command};
 use crate::game::utils::{get_header_body, get_header_text};
-use crate::models::SlackBot;
+use crate::models::{SlackBot, Word2Vec};
 use crate::payloads::CommandPayload;
 use crate::slack_client::{Block, SlackClient};
 use crate::SimilariumError;
@@ -40,7 +40,13 @@ async fn post_similarium_command(
                 .await?;
         }
         Command::ManualStart => {
-            test_blocks(&app_state.slack_client, &payload.channel_id, &token).await?
+            test_blocks(
+                &app_state.db,
+                &app_state.slack_client,
+                &payload.channel_id,
+                &token,
+            )
+            .await?
         }
         Command::ManualEnd => todo!(),
         Command::Stop => todo!(),
@@ -56,6 +62,7 @@ async fn post_similarium_command(
 }
 
 async fn test_blocks(
+    db: &sqlx::PgPool,
     slack_client: &SlackClient,
     channel_id: &str,
     token: &str,
@@ -64,9 +71,11 @@ async fn test_blocks(
 
     let datetime = datetime!(2023-08-08 00:00:00 UTC);
 
-    let top = 0.6754;
-    let top10 = 0.3215;
-    let top1000 = 0.1412;
+    let target_word = Word2Vec {
+        word: "car".to_string(),
+    };
+    target_word.create_materialised_view(db).await?;
+    let (top, top10, top1000) = target_word.get_top_hints(db).await?;
 
     let header_text = get_header_text(datetime).unwrap();
     let header_body = get_header_body(top, top10, top1000);
@@ -77,6 +86,8 @@ async fn test_blocks(
         Block::divider(),
         Block::guess_input(),
     ];
+
+    blocks.iter().for_each(|block| log::debug!("{:?}", block));
 
     match slack_client
         .post_message("Manual start", channel_id, token, Some(blocks))

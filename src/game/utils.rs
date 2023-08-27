@@ -38,9 +38,7 @@ pub fn get_header_body(top: f64, top10: f64, top1000: f64) -> String {
         "The nearest word has a similarity of {:.02}, \
         the tenth-nearest has a similarity of {:.02} and \
         the one thousandth nearest word has a similarity of {:.02}.",
-        top * 100f64,
-        top10 * 100f64,
-        top1000 * 100f64,
+        top, top10, top1000,
     )
 }
 

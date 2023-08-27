@@ -25,6 +25,7 @@ enum TextType {
 pub struct Text {
     r#type: TextType,
     text: String,
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
     emoji: bool,
 }
 
@@ -114,7 +115,7 @@ impl Block {
     pub fn section(text: &str) -> Self {
         Block {
             r#type: BlockType::Section,
-            text: Some(Text::markdown(text, true)),
+            text: Some(Text::markdown(text, false)),
             ..Default::default()
         }
     }
@@ -178,8 +179,7 @@ mod tests {
   "type": "section",
   "text": {
     "type": "mrkdwn",
-    "text": "Hello",
-    "emoji": true
+    "text": "Hello"
   }
 }"#
         );
