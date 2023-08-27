@@ -1,4 +1,3 @@
-use crate::models::SimilarityRange;
 use time::{
     macros::{datetime, format_description},
     OffsetDateTime,
@@ -34,14 +33,14 @@ pub fn get_header_text(date: OffsetDateTime) -> Result<String, time::Error> {
 }
 
 /// Generate header body of a game for Slack message
-pub fn get_header_body(similarity_range: SimilarityRange) -> String {
+pub fn get_header_body(top: f64, top10: f64, top1000: f64) -> String {
     format!(
         "The nearest word has a similarity of {:.02}, \
         the tenth-nearest has a similarity of {:.02} and \
         the one thousandth nearest word has a similarity of {:.02}.",
-        similarity_range.top * 100f64,
-        similarity_range.top10 * 100f64,
-        similarity_range.rest * 100f64,
+        top * 100f64,
+        top10 * 100f64,
+        top1000 * 100f64,
     )
 }
 
@@ -89,14 +88,8 @@ mod tests {
 
     #[test]
     fn test_get_header_body() {
-        let similarity_range = SimilarityRange {
-            word: "djamm".to_string(),
-            top: 0.6731,
-            top10: 0.2759,
-            rest: 0.1312,
-        };
         assert_eq!(
-            get_header_body(similarity_range),
+            get_header_body(0.6731, 0.2759, 0.1312),
             String::from(
                 "The nearest word has a similarity of 67.31, \
                 the tenth-nearest has a similarity of 27.59 and \

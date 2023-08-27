@@ -1,7 +1,6 @@
 use crate::api::app::AppState;
 use crate::api::utils::{parse_command, Command};
 use crate::game::utils::{get_header_body, get_header_text};
-use crate::models::SimilarityRange;
 use crate::models::SlackBot;
 use crate::payloads::CommandPayload;
 use crate::slack_client::{Block, SlackClient};
@@ -64,15 +63,13 @@ async fn test_blocks(
     log::info!("Sending test blocks");
 
     let datetime = datetime!(2023-08-08 00:00:00 UTC);
-    let similarity_range = SimilarityRange {
-        word: "foo".to_string(),
-        top: 0.6754,
-        top10: 0.3215,
-        rest: 0.1412,
-    };
+
+    let top = 0.6754;
+    let top10 = 0.3215;
+    let top1000 = 0.1412;
 
     let header_text = get_header_text(datetime).unwrap();
-    let header_body = get_header_body(similarity_range);
+    let header_body = get_header_body(top, top10, top1000);
 
     let blocks: Vec<Block> = vec![
         Block::header(&header_text),

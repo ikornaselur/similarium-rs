@@ -177,7 +177,7 @@ mod tests {
             r#"{
   "type": "section",
   "text": {
-    "type": "mrkdown",
+    "type": "mrkdwn",
     "text": "Hello",
     "emoji": true
   }
