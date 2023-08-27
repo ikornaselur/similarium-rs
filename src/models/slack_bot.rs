@@ -25,7 +25,21 @@ impl SlackBot {
         sqlx::query!(
             r#"
             INSERT INTO 
-                slack_bots(app_id, enterprise_id, enterprise_name, team_id, team_name, bot_token, bot_id, bot_user_id, bot_scopes, bot_refresh_token, bot_token_expires_at, is_enterprise_install, installed_at)
+                slack_bots(
+                    app_id, 
+                    enterprise_id, 
+                    enterprise_name, 
+                    team_id, 
+                    team_name, 
+                    bot_token, 
+                    bot_id, 
+                    bot_user_id, 
+                    bot_scopes, 
+                    bot_refresh_token, 
+                    bot_token_expires_at, 
+                    is_enterprise_install,
+                    installed_at
+                )
             VALUES 
                 ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true, $12);
             "#,

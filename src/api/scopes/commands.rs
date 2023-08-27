@@ -1,12 +1,13 @@
 use crate::api::app::AppState;
 use crate::api::utils::{parse_command, Command};
 use crate::game::utils::{get_header_body, get_header_text};
-use crate::models::{SlackBot, Word2Vec};
+use crate::models::{Channel, Game, SlackBot, Word2Vec};
 use crate::payloads::CommandPayload;
 use crate::slack_client::{Block, SlackClient};
-use crate::SimilariumError;
+use crate::{SimilariumError, SimilariumErrorType};
 use actix_web::{post, web, HttpResponse, Scope};
 use time::macros::{datetime, format_description};
+use uuid::Uuid;
 
 #[post("/similarium")]
 async fn post_similarium_command(
@@ -41,6 +42,7 @@ async fn post_similarium_command(
         }
         Command::ManualStart => {
             test_blocks(
+                &payload,
                 &app_state.db,
                 &app_state.slack_client,
                 &payload.channel_id,
@@ -62,6 +64,7 @@ async fn post_similarium_command(
 }
 
 async fn test_blocks(
+    payload: &CommandPayload,
     db: &sqlx::PgPool,
     slack_client: &SlackClient,
     channel_id: &str,
@@ -69,15 +72,53 @@ async fn test_blocks(
 ) -> Result<(), SimilariumError> {
     log::info!("Sending test blocks");
 
-    let datetime = datetime!(2023-08-08 00:00:00 UTC);
+    // Get, or create, the channel
+    let channel = match Channel::get(&payload.channel_id, db).await? {
+        Some(mut channel) => {
+            log::debug!("Found channel: {:?}", channel);
+            if !channel.active {
+                channel.set_active(true, db).await?;
+            }
+            channel
+        }
+        None => {
+            log::debug!("Channel not found, creating...");
+            let channel = Channel {
+                id: payload.channel_id.clone(),
+                team_id: payload.team_id.clone(),
+                hour: 0,
+                active: true,
+            };
+            channel.insert(db).await?;
+            channel
+        }
+    };
 
+    log::debug!("Setting up target word");
     let target_word = Word2Vec {
         word: "car".to_string(),
     };
     target_word.create_materialised_view(db).await?;
+
+    let datetime = datetime!(2023-08-08 00:00:00 UTC);
+    let header_text = get_header_text(datetime).unwrap();
+
+    log::debug!("Setting up the game");
+    let mut game = Game {
+        id: Uuid::new_v4(),
+        channel_id: channel.id,
+        thread_ts: None,
+        puzzle_number: 1,
+        date: header_text.clone(),
+        active: true,
+        hint: None,
+        secret: target_word.word.clone(),
+    };
+    game.insert(db).await?;
+
+    log::debug!("Setting up the message");
     let (top, top10, top1000) = target_word.get_top_hints(db).await?;
 
-    let header_text = get_header_text(datetime).unwrap();
     let header_body = get_header_body(top, top10, top1000);
 
     let blocks: Vec<Block> = vec![
@@ -87,15 +128,20 @@ async fn test_blocks(
         Block::guess_input(),
     ];
 
-    blocks.iter().for_each(|block| log::debug!("{:?}", block));
-
-    match slack_client
+    log::debug!("Submitting the message");
+    let res = slack_client
         .post_message("Manual start", channel_id, token, Some(blocks))
-        .await
-    {
-        Ok(_) => log::info!("Successfully sent test blocks"),
-        Err(e) => log::error!("Error sending test blocks: {}", e),
-    }
+        .await?;
+
+    // Get the thread_ts and update the game
+    let thread_ts = res.get("ts").ok_or(SimilariumError {
+        message: Some("Could not get thread_ts from Slack response".to_string()),
+        error_type: SimilariumErrorType::MissingThreadTs,
+    })?.to_string();
+
+    game.set_thread_ts(&thread_ts, db).await?;
+
+    log::info!("Successfully sent test blocks");
     Ok(())
 }
 

@@ -22,7 +22,7 @@ impl SlackClient {
         channel_id: &str,
         token: &str,
         blocks: Option<Vec<Block>>,
-    ) -> Result<(), SimilariumError> {
+    ) -> Result<serde_json::Value, SimilariumError> {
         let mut res = if let Some(blocks) = blocks {
             self.client
                 .post(POST_MESSAGE_URL)
@@ -58,7 +58,7 @@ impl SlackClient {
             });
         }
 
-        Ok(())
+        Ok(payload)
     }
 
     pub async fn post_oauth_code(

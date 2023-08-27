@@ -12,7 +12,9 @@ pub enum SimilariumErrorType {
     IOError,
     Error,
     ValidationError,
+    MissingThreadTs,
 }
+
 #[derive(Debug, Eq, PartialEq)]
 pub struct SimilariumError {
     pub message: Option<String>,
@@ -53,6 +55,7 @@ impl ResponseError for SimilariumError {
             SimilariumErrorType::NotFound => StatusCode::NOT_FOUND,
             SimilariumErrorType::SlackApiError => StatusCode::INTERNAL_SERVER_ERROR,
             SimilariumErrorType::ValidationError => StatusCode::BAD_REQUEST,
+            SimilariumErrorType::MissingThreadTs => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
