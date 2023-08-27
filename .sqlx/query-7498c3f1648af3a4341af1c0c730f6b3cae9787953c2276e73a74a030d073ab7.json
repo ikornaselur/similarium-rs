@@ -1,27 +1,27 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT word, top, top10, rest\n            FROM similarity_range\n            WHERE word = $1\n            ",
+  "query": "\n            SELECT * FROM channel WHERE id = $1;\n            ",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "word",
+        "name": "id",
         "type_info": "Text"
       },
       {
         "ordinal": 1,
-        "name": "top",
-        "type_info": "Float8"
+        "name": "team_id",
+        "type_info": "Text"
       },
       {
         "ordinal": 2,
-        "name": "top10",
-        "type_info": "Float8"
+        "name": "hour",
+        "type_info": "Int8"
       },
       {
         "ordinal": 3,
-        "name": "rest",
-        "type_info": "Float8"
+        "name": "active",
+        "type_info": "Bool"
       }
     ],
     "parameters": {
@@ -36,5 +36,5 @@
       false
     ]
   },
-  "hash": "5c057aff9ce0517b53bb4250c54afb3a0312c843455b6a9eeecf45e821c3877c"
+  "hash": "7498c3f1648af3a4341af1c0c730f6b3cae9787953c2276e73a74a030d073ab7"
 }
