@@ -1,4 +1,4 @@
-use crate::payloads::Team;
+use crate::payloads::{Team, UserInfo};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -11,4 +11,11 @@ pub struct SlackOAuthResponse {
     pub app_id: String,
     pub team: Team,
     pub is_enterprise_install: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UserInfoResponse {
+    pub ok: bool,
+    pub error: Option<String>,
+    pub user: Option<UserInfo>,
 }

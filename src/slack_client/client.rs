@@ -1,9 +1,10 @@
-use crate::slack_client::responses::SlackOAuthResponse;
+use crate::slack_client::responses::{SlackOAuthResponse, UserInfoResponse};
 use crate::slack_client::Block;
 use crate::{SimilariumError, SimilariumErrorType};
 
-const POST_MESSAGE_URL: &str = "https://slack.com/api/chat.postMessage";
 const OAUTH_API_URL: &str = "https://slack.com/api/oauth.v2.access";
+const POST_MESSAGE_URL: &str = "https://slack.com/api/chat.postMessage";
+const USER_DETAILS_URL: &str = "https://slack.com/api/users.info";
 
 pub struct SlackClient {
     client: awc::Client,
@@ -78,5 +79,27 @@ impl SlackClient {
             .await?;
 
         Ok(res.json::<SlackOAuthResponse>().await?)
+    }
+
+    pub async fn get_user_details(
+        &self,
+        user_id: &str,
+        token: &str,
+    ) -> Result<UserInfoResponse, SimilariumError> {
+        let mut res = self
+            .client
+            .get(USER_DETAILS_URL)
+            .query(&[("user", user_id)])?
+            .bearer_auth(token)
+            .send()
+            .await?;
+
+        Ok(res.json::<UserInfoResponse>().await?)
+    }
+}
+
+impl Default for SlackClient {
+    fn default() -> Self {
+        Self::new()
     }
 }

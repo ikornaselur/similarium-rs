@@ -14,8 +14,6 @@ async fn post_similarium_command(
     form: web::Form<CommandPayload>,
     app_state: web::Data<AppState>,
 ) -> Result<HttpResponse, SimilariumError> {
-    log::debug!("POST /slack/similarium");
-
     let payload = form.into_inner();
     let token =
         SlackBot::get_slack_bot_token(&payload.team_id, &payload.api_app_id, &app_state.db).await?;
@@ -134,12 +132,19 @@ async fn test_blocks(
         .await?;
 
     // Get the thread_ts and update the game
-    let thread_ts = res.get("ts").ok_or(SimilariumError {
-        message: Some("Could not get thread_ts from Slack response".to_string()),
-        error_type: SimilariumErrorType::MissingThreadTs,
-    })?.to_string();
+    let thread_ts = res
+        .get("ts")
+        .ok_or(SimilariumError {
+            message: Some("Could not get thread_ts from Slack response".to_string()),
+            error_type: SimilariumErrorType::MissingThreadTs,
+        })?
+        .as_str()
+        .ok_or(SimilariumError {
+            message: Some("Could not get thread_ts from Slack response".to_string()),
+            error_type: SimilariumErrorType::MissingThreadTs,
+        })?;
 
-    game.set_thread_ts(&thread_ts, db).await?;
+    game.set_thread_ts(thread_ts, db).await?;
 
     log::info!("Successfully sent test blocks");
     Ok(())

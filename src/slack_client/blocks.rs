@@ -135,7 +135,7 @@ impl Block {
         }
     }
     pub fn guess_input() -> Self {
-        let element = Element::new("guess", Some(2));
+        let element = Element::new("submit-guess", Some(2));
         let label = Text::label("Guess");
         Block::input("guess", true, element, label)
     }

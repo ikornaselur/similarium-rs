@@ -13,6 +13,7 @@ pub enum SimilariumErrorType {
     Error,
     ValidationError,
     MissingThreadTs,
+    SerialisationError,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -47,15 +48,16 @@ impl fmt::Display for SimilariumError {
 impl ResponseError for SimilariumError {
     fn status_code(&self) -> StatusCode {
         match self.error_type {
-            SimilariumErrorType::DbError => StatusCode::INTERNAL_SERVER_ERROR,
-            SimilariumErrorType::EnvError => StatusCode::INTERNAL_SERVER_ERROR,
-            SimilariumErrorType::Error => StatusCode::INTERNAL_SERVER_ERROR,
-            SimilariumErrorType::IOError => StatusCode::INTERNAL_SERVER_ERROR,
-            SimilariumErrorType::JsonParseError => StatusCode::INTERNAL_SERVER_ERROR,
+            SimilariumErrorType::DbError
+            | SimilariumErrorType::EnvError
+            | SimilariumErrorType::Error
+            | SimilariumErrorType::IOError
+            | SimilariumErrorType::JsonParseError
+            | SimilariumErrorType::MissingThreadTs
+            | SimilariumErrorType::SerialisationError
+            | SimilariumErrorType::SlackApiError => StatusCode::INTERNAL_SERVER_ERROR,
             SimilariumErrorType::NotFound => StatusCode::NOT_FOUND,
-            SimilariumErrorType::SlackApiError => StatusCode::INTERNAL_SERVER_ERROR,
             SimilariumErrorType::ValidationError => StatusCode::BAD_REQUEST,
-            SimilariumErrorType::MissingThreadTs => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
@@ -74,6 +76,13 @@ impl SimilariumError {
                 error_type: _,
             } => message.clone(),
             _ => "An unexpected error has occurred".to_string(),
+        }
+    }
+
+    pub fn validation_error(message: &str) -> Self {
+        SimilariumError {
+            message: Some(message.to_string()),
+            error_type: SimilariumErrorType::ValidationError,
         }
     }
 }
@@ -122,6 +131,26 @@ impl From<awc::error::JsonPayloadError> for SimilariumError {
         SimilariumError {
             message: Some("Unexpected error parsing JSON".to_string()),
             error_type: SimilariumErrorType::JsonParseError,
+        }
+    }
+}
+
+impl From<serde_json::error::Error> for SimilariumError {
+    fn from(error: serde_json::error::Error) -> Self {
+        log::error!("Error parsing JSON: {}", error);
+        SimilariumError {
+            message: Some("Unexpected error parsing JSON".to_string()),
+            error_type: SimilariumErrorType::JsonParseError,
+        }
+    }
+}
+
+impl From<serde_urlencoded::ser::Error> for SimilariumError {
+    fn from(error: serde_urlencoded::ser::Error) -> Self {
+        log::error!("Error parsing URL encoded data: {}", error);
+        SimilariumError {
+            message: Some("Unexpected error parsing URL encoded data".to_string()),
+            error_type: SimilariumErrorType::SerialisationError,
         }
     }
 }

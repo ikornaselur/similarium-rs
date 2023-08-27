@@ -15,8 +15,6 @@ async fn get_oauth_redirect(
     info: web::Query<OAuthRedirect>,
     app_state: web::Data<AppState>,
 ) -> Result<HttpResponse, SimilariumError> {
-    log::debug!("GET /auth/oauth_redirect");
-
     let code = &info.code;
 
     let payload = app_state

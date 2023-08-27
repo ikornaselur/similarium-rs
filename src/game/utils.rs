@@ -87,7 +87,7 @@ mod tests {
     #[test]
     fn test_get_header_body() {
         assert_eq!(
-            get_header_body(0.6731, 0.2759, 0.1312),
+            get_header_body(67.31, 27.59, 13.12),
             String::from(
                 "The nearest word has a similarity of 67.31, \
                 the tenth-nearest has a similarity of 27.59 and \

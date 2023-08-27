@@ -6,8 +6,6 @@ use actix_web::{get, web, Error, HttpResponse};
 
 #[get("")]
 async fn home_handler() -> Result<HttpResponse, Error> {
-    log::debug!("GET /");
-
     Ok(HttpResponse::Ok().body("Home, sweet home!"))
 }
 

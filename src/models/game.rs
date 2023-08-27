@@ -14,6 +14,35 @@ pub struct Game {
 }
 
 impl Game {
+    pub async fn get(
+        channel_id: &str,
+        thread_ts: &str,
+        db: &sqlx::PgPool,
+    ) -> Result<Option<Game>, sqlx::Error> {
+        log::debug!(
+            "Fetching game for channel: {} and thread_ts: {}",
+            channel_id,
+            thread_ts
+        );
+        let game = sqlx::query_as!(
+            Game,
+            r#"
+            SELECT 
+                *
+            FROM
+                game
+            WHERE
+                channel_id = $1 AND
+                thread_ts = $2
+            "#,
+            channel_id,
+            thread_ts
+        )
+        .fetch_optional(db)
+        .await?;
+        Ok(game)
+    }
+
     pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
         sqlx::query!(
             r#"
@@ -45,14 +74,21 @@ impl Game {
         Ok(())
     }
 
-    pub async fn set_thread_ts(&mut self, thread_ts: &str, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
+    pub async fn set_thread_ts(
+        &mut self,
+        thread_ts: &str,
+        db: &sqlx::PgPool,
+    ) -> Result<(), sqlx::Error> {
         log::debug!("Setting thread_ts to {}", thread_ts);
         self.thread_ts = Some(thread_ts.to_string());
         sqlx::query!(
             r#"
-            UPDATE game
-            SET thread_ts = $1
-            WHERE id = $2;
+            UPDATE
+                game
+            SET
+                thread_ts = $1
+            WHERE
+                id = $2
             "#,
             self.thread_ts,
             self.id,
