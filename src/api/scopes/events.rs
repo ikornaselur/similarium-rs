@@ -1,6 +1,7 @@
 use crate::api::app::AppState;
 use crate::game::submit_guess;
-use crate::models::Game;
+use crate::game::utils::get_game_blocks;
+use crate::models::{Game, SlackBot};
 use crate::payloads::{Event, EventPayload};
 use crate::utils::get_or_create_user;
 use crate::SimilariumError;
@@ -29,7 +30,7 @@ async fn post_events(
                     format!("Invalid action_id: {}", action.action_id).as_str(),
                 ));
             }
-            let user = get_or_create_user(
+            let local_user = get_or_create_user(
                 &user.id.clone(),
                 &user.team_id.clone(),
                 &api_app_id,
@@ -42,7 +43,22 @@ async fn post_events(
                 .await?
                 .ok_or_else(|| SimilariumError::validation_error("Game not found"))?;
 
-            submit_guess(&user, &game, &action.value, &app_state).await?;
+            submit_guess(&local_user, &game, &action.value, &app_state).await?;
+
+            let blocks = get_game_blocks(game, &app_state.db).await?;
+            let token =
+                SlackBot::get_slack_bot_token(&user.team_id, &api_app_id, &app_state.db).await?;
+
+            let _ = &app_state
+                .slack_client
+                .chat_update(
+                    "Update to today's game",
+                    &channel.id,
+                    &message.ts,
+                    &token,
+                    Some(blocks),
+                )
+                .await?;
         }
         _ => {
             todo!("Not handled");

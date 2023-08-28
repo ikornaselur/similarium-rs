@@ -15,6 +15,30 @@ pub struct Guess {
 }
 
 impl Guess {
+    pub async fn get(
+        game_id: Uuid,
+        word: &str,
+        db: &sqlx::PgPool,
+    ) -> Result<Option<Guess>, sqlx::Error> {
+        let guess = sqlx::query_as!(
+            Guess,
+            r#"
+            SELECT 
+                *
+            FROM
+                guess
+            WHERE
+                game_id = $1 AND
+                word = $2
+            "#,
+            game_id,
+            word
+        )
+        .fetch_optional(db)
+        .await?;
+        Ok(guess)
+    }
+
     pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
         let mut tx = db.begin().await?;
         sqlx::query!(

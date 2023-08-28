@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+use crate::models::GuessContext;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -11,6 +11,8 @@ enum BlockType {
     Header,
     #[serde(rename = "input")]
     Input,
+    #[serde(rename = "context")]
+    Context,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -77,6 +79,43 @@ impl Element {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct ContextElement {
+    r#type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    text: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    image_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    alt_text: Option<String>,
+}
+
+impl ContextElement {
+    pub fn text(text: &str) -> Self {
+        ContextElement {
+            r#type: "mrkdwn".to_string(),
+            text: Some(text.to_string()),
+            image_url: None,
+            alt_text: None,
+        }
+    }
+    pub fn image(image_url: &str, alt_text: &str) -> Self {
+        ContextElement {
+            r#type: "image".to_string(),
+            text: None,
+            image_url: Some(image_url.to_string()),
+            alt_text: Some(alt_text.to_string()),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Context {
+    r#type: String,
+    block_id: String,
+    elements: Vec<ContextElement>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Block {
     r#type: BlockType,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -89,6 +128,8 @@ pub struct Block {
     element: Option<Element>,
     #[serde(skip_serializing_if = "Option::is_none")]
     label: Option<Text>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    elements: Option<Vec<ContextElement>>,
 }
 
 impl Default for Block {
@@ -100,6 +141,7 @@ impl Default for Block {
             dispatch_action: None,
             element: None,
             label: None,
+            elements: None,
         }
     }
 }
@@ -138,6 +180,21 @@ impl Block {
         let element = Element::new("submit-guess", Some(2));
         let label = Text::label("Guess");
         Block::input("guess", true, element, label)
+    }
+    pub fn guess_context(base_id: &str, context: GuessContext) -> Self {
+        let block_id = format!("guess-{}-{}", base_id, context.word);
+        let elements = vec![
+            ContextElement::image(&context.profile_photo, &context.username),
+            ContextElement::text(format!("{:.02}", &context.rank).as_str()),
+            ContextElement::text(format!("xxx. {} {}", context.similarity, context.word).as_str()),
+        ];
+
+        Block {
+            r#type: BlockType::Context,
+            block_id: Some(block_id),
+            elements: Some(elements),
+            ..Default::default()
+        }
     }
 }
 
@@ -208,6 +265,42 @@ mod tests {
     "text": "label",
     "emoji": true
   }
+}"#
+        );
+    }
+
+    #[test]
+    fn test_guess_context() {
+        let context = GuessContext {
+            word: "word".to_string(),
+            profile_photo: "photo".to_string(),
+            username: "username".to_string(),
+            similarity: 0.5,
+            rank: 251,
+        };
+
+        let block = Block::guess_context("base-id", context);
+        let json = serde_json::to_string_pretty(&block).unwrap();
+        assert_eq!(
+            json,
+            r#"{
+  "type": "context",
+  "block_id": "guess-base-id-word",
+  "elements": [
+    {
+      "type": "image",
+      "image_url": "photo",
+      "alt_text": "username"
+    },
+    {
+      "type": "mrkdwn",
+      "text": "251"
+    },
+    {
+      "type": "mrkdwn",
+      "text": "xxx. 0.5 word"
+    }
+  ]
 }"#
         );
     }

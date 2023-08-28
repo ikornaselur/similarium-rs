@@ -1,3 +1,6 @@
+use crate::models::{Game, GuessContextOrder, Word2Vec};
+use crate::slack_client::Block;
+use crate::SimilariumError;
 use time::{
     macros::{datetime, format_description},
     OffsetDateTime,
@@ -40,6 +43,54 @@ pub fn get_header_body(top: f64, top10: f64, top1000: f64) -> String {
         the one thousandth nearest word has a similarity of {:.02}.",
         top, top10, top1000,
     )
+}
+
+/// Generate the blocks for a game
+pub async fn get_game_blocks(game: Game, db: &sqlx::PgPool) -> Result<Vec<Block>, SimilariumError> {
+    let target_word = Word2Vec {
+        word: game.secret.clone(),
+    };
+    let (top, top10, top1000) = target_word.get_top_hints(db).await?;
+    let header_body = get_header_body(top, top10, top1000);
+
+    let mut blocks = vec![
+        Block::header(&game.date),
+        Block::section(&header_body),
+        // TODO: If finished?
+        Block::divider(),
+    ];
+
+    // Show latest
+    if game.active {
+        blocks.push(Block::section("*Latest guesses*"));
+
+        let game_guesses = game
+            .get_guess_contexts(GuessContextOrder::GuessNum, 3, db)
+            .await?;
+        blocks.extend(
+            game_guesses
+                .into_iter()
+                .map(|guess| Block::guess_context("latest", guess)),
+        );
+    }
+
+    // Show top
+    blocks.push(Block::section("*Top guesses*"));
+    let game_guesses = game
+        .get_guess_contexts(GuessContextOrder::Rank, 15, db)
+        .await?;
+    blocks.extend(
+        game_guesses
+            .into_iter()
+            .map(|guess| Block::guess_context("top", guess)),
+    );
+
+    // Show input
+    if game.active {
+        blocks.push(Block::guess_input());
+    }
+
+    Ok(blocks)
 }
 
 #[cfg(test)]

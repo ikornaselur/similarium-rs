@@ -15,6 +15,12 @@ pub async fn submit_guess(
     };
     let similarity = secret.get_similarity(guess, &app_state.db).await?;
 
+    if Guess::get(game.id, guess, &app_state.db).await?.is_some() {
+        return Err(SimilariumError::validation_error(
+            "You have already guessed this word",
+        ));
+    }
+
     let guess = Guess {
         id: Uuid::new_v4(),
         game_id: game.id,

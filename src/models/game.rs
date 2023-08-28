@@ -13,6 +13,20 @@ pub struct Game {
     pub hint: Option<String>,
 }
 
+#[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
+pub struct GuessContext {
+    pub word: String,
+    pub username: String,
+    pub profile_photo: String,
+    pub rank: i64,
+    pub similarity: f64,
+}
+
+pub enum GuessContextOrder {
+    Rank,
+    GuessNum,
+}
+
 impl Game {
     pub async fn get(
         channel_id: &str,
@@ -96,5 +110,46 @@ impl Game {
         .execute(db)
         .await?;
         Ok(())
+    }
+
+    pub async fn get_guess_contexts(
+        &self,
+        order: GuessContextOrder,
+        count: i64,
+        db: &sqlx::PgPool,
+    ) -> Result<Vec<GuessContext>, sqlx::Error> {
+        let q = format!(
+            r#"
+            SELECT
+                word,
+                username,
+                profile_photo,
+                rank,
+                similarity
+            FROM
+                guess g
+            LEFT JOIN
+                "user" u
+            ON
+                g.user_id = u.id
+            WHERE
+                game_id = $1
+            ORDER BY
+                {}
+            LIMIT $2
+            "#,
+            match order {
+                GuessContextOrder::Rank => "rank ASC",
+                GuessContextOrder::GuessNum => "guess_num DESC",
+            },
+        );
+
+        let guesses: Vec<GuessContext> = sqlx::query_as(q.as_str())
+            .bind(self.id)
+            .bind(count)
+            .fetch_all(db)
+            .await?;
+
+        Ok(guesses)
     }
 }
