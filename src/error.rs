@@ -14,6 +14,7 @@ pub enum SimilariumErrorType {
     ValidationError,
     MissingThreadTs,
     SerialisationError,
+    ValueError,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -55,6 +56,7 @@ impl ResponseError for SimilariumError {
             | SimilariumErrorType::JsonParseError
             | SimilariumErrorType::MissingThreadTs
             | SimilariumErrorType::SerialisationError
+            | SimilariumErrorType::ValueError
             | SimilariumErrorType::SlackApiError => StatusCode::INTERNAL_SERVER_ERROR,
             SimilariumErrorType::NotFound => StatusCode::NOT_FOUND,
             SimilariumErrorType::ValidationError => StatusCode::BAD_REQUEST,
@@ -83,6 +85,13 @@ impl SimilariumError {
         SimilariumError {
             message: Some(message.to_string()),
             error_type: SimilariumErrorType::ValidationError,
+        }
+    }
+
+    pub fn value_error(message: &str) -> Self {
+        SimilariumError {
+            message: Some(message.to_string()),
+            error_type: SimilariumErrorType::ValueError,
         }
     }
 }

@@ -294,11 +294,11 @@ mod tests {
     },
     {
       "type": "mrkdwn",
-      "text": "251"
+      "text": ":p8::p8::p8::p8::p8::p8:    251"
     },
     {
       "type": "mrkdwn",
-      "text": "xxx. 0.5 word"
+      "text": "x.      _0.5_    *word*"
     }
   ]
 }"#
