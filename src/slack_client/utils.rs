@@ -148,7 +148,6 @@ mod tests {
         for (emoji, range) in checks {
             for i in range {
                 let actual = get_progress_bar(i, total, 1).unwrap();
-                println!("({}, {}) {} == {}", i, total, actual, emoji);
                 assert_eq!(actual, emoji);
             }
         }
