@@ -39,7 +39,7 @@ async fn post_similarium_command(
                 .await?;
         }
         Command::ManualStart => {
-            test_blocks(
+            manual_start(
                 &payload,
                 &app_state.db,
                 &app_state.slack_client,
@@ -61,7 +61,7 @@ async fn post_similarium_command(
     Ok(HttpResponse::Ok().into())
 }
 
-async fn test_blocks(
+async fn manual_start(
     payload: &CommandPayload,
     db: &sqlx::PgPool,
     slack_client: &SlackClient,
