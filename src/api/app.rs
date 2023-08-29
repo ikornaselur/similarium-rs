@@ -1,3 +1,4 @@
+use actix_web::middleware::Logger;
 use actix_web::{error, web, App, HttpRequest, HttpResponse, HttpServer};
 use sqlx::postgres::PgPoolOptions;
 use std::env;
@@ -15,14 +16,14 @@ async fn not_found(request: HttpRequest, text: String) -> HttpResponse {
     HttpResponse::NotFound().body("Not Found")
 }
 
-pub(crate) struct AppState {
+pub struct AppState {
     pub db: sqlx::PgPool,
     pub config: Config,
     pub slack_client: SlackClient,
 }
 
 pub async fn run() -> Result<(), SimilariumError> {
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or(":info"));
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
     log::info!("Running migrations");
     let pool = PgPoolOptions::new()
@@ -51,6 +52,7 @@ pub async fn run() -> Result<(), SimilariumError> {
 
     HttpServer::new(move || {
         App::new()
+            .wrap(Logger::default())
             .app_data(json_cfg.clone())
             .app_data(web::Data::new(AppState {
                 db: pool.clone(),

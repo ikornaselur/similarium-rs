@@ -1,0 +1,3 @@
+ALTER TABLE guess RENAME COLUMN guess_num TO idx;
+UPDATE guess SET idx = 0 WHERE idx IS NULL;
+ALTER TABLE guess ALTER COLUMN idx SET NOT NULL;

@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO channel(id, team_id, hour, active)\n            VALUES ($1, $2, $3, $4);\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Int8",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ab3688d7dbf36b4bd939f1016e5d3ea9d4929b5649e0ea0090df1670360065d4"
+}

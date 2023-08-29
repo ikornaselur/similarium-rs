@@ -1,4 +1,7 @@
+mod blocks;
 mod client;
-mod responses;
+pub mod responses;
+mod utils;
 
+pub use blocks::Block;
 pub use client::SlackClient;

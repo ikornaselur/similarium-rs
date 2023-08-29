@@ -1,5 +1,5 @@
 use crate::api::app::AppState;
-use crate::models::{slack_bot::insert_slack_bot, SlackBot};
+use crate::models::SlackBot;
 use crate::SimilariumError;
 use actix_web::{get, web, HttpResponse, Scope};
 use serde::Deserialize;
@@ -15,8 +15,6 @@ async fn get_oauth_redirect(
     info: web::Query<OAuthRedirect>,
     app_state: web::Data<AppState>,
 ) -> Result<HttpResponse, SimilariumError> {
-    log::debug!("GET /auth/oauth_redirect");
-
     let code = &info.code;
 
     let payload = app_state
@@ -44,8 +42,7 @@ async fn get_oauth_redirect(
         enterprise_id: None,
         enterprise_name: None,
     };
-
-    insert_slack_bot(slack_bot, &app_state.db).await?;
+    slack_bot.insert(&app_state.db).await?;
 
     // Redirect the user
     Ok(HttpResponse::Ok().body("Auth, sweet auth!"))
