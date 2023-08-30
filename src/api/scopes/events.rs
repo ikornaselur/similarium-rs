@@ -26,9 +26,7 @@ async fn post_events(
         } if actions.len() == 1 => {
             let action = actions.first().unwrap();
             if action.action_id != "submit-guess" {
-                return Err(SimilariumError::validation_error(
-                    format!("Invalid action_id: {}", action.action_id).as_str(),
-                ));
+                return validation_error!("Invalid action_id: {}", action.action_id);
             }
             let local_user = get_or_create_user(
                 &user.id.clone(),
@@ -41,7 +39,7 @@ async fn post_events(
 
             let game = Game::get(channel.id.as_str(), message.ts.as_str(), &app_state.db)
                 .await?
-                .ok_or_else(|| SimilariumError::validation_error("Game not found"))?;
+                .map_or_else(|| validation_error!("Game not found"), Ok)?;
 
             submit_guess(&local_user, &game, &action.value, &app_state).await?;
 

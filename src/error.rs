@@ -80,20 +80,6 @@ impl SimilariumError {
             _ => "An unexpected error has occurred".to_string(),
         }
     }
-
-    pub fn validation_error(message: &str) -> Self {
-        SimilariumError {
-            message: Some(message.to_string()),
-            error_type: SimilariumErrorType::ValidationError,
-        }
-    }
-
-    pub fn value_error(message: &str) -> Self {
-        SimilariumError {
-            message: Some(message.to_string()),
-            error_type: SimilariumErrorType::ValueError,
-        }
-    }
 }
 
 impl From<sqlx::Error> for SimilariumError {

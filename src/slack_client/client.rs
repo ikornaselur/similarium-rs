@@ -1,6 +1,6 @@
 use crate::slack_client::responses::{SlackOAuthResponse, UserInfoResponse};
 use crate::slack_client::Block;
-use crate::{SimilariumError, SimilariumErrorType};
+use crate::SimilariumError;
 
 const CHAT_UPDATE_URL: &str = "https://slack.com/api/chat.update";
 const OAUTH_API_URL: &str = "https://slack.com/api/oauth.v2.access";
@@ -44,20 +44,14 @@ impl SlackClient {
 
         if !res.status().is_success() {
             log::error!("Error posting to Slack API: {}", text);
-            return Err(SimilariumError {
-                message: Some(format!("Error posting to Slack API: {}", text)),
-                error_type: SimilariumErrorType::SlackApiError,
-            });
+            return slack_api_error!("Error posting to Slack API: {}", text);
         }
 
         let payload = res.json::<serde_json::Value>().await?;
         let ok = payload["ok"].as_bool().unwrap_or(false);
         if !ok {
             log::error!("Error posting to Slack API: {}", payload);
-            return Err(SimilariumError {
-                message: Some(format!("Error posting to Slack API: {}", payload)),
-                error_type: SimilariumErrorType::SlackApiError,
-            });
+            return slack_api_error!("Error posting to Slack API: {}", payload);
         }
 
         Ok(payload)
@@ -131,20 +125,14 @@ impl SlackClient {
 
         if !res.status().is_success() {
             log::error!("Error posting to Slack API: {}", text);
-            return Err(SimilariumError {
-                message: Some(format!("Error posting to Slack API: {}", text)),
-                error_type: SimilariumErrorType::SlackApiError,
-            });
+            return slack_api_error!("Error posting to Slack API: {}", text);
         }
 
         let payload = res.json::<serde_json::Value>().await?;
         let ok = payload["ok"].as_bool().unwrap_or(false);
         if !ok {
             log::error!("Error posting to Slack API: {}", payload);
-            return Err(SimilariumError {
-                message: Some(format!("Error posting to Slack API: {}", payload)),
-                error_type: SimilariumErrorType::SlackApiError,
-            });
+            return slack_api_error!("Error posting to Slack API: {}", payload);
         }
 
         Ok(payload)
