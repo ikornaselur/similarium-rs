@@ -30,14 +30,10 @@ pub async fn get_or_create_user(
                     error: Some(error),
                     ..
                 } => {
-                    return Err(SimilariumError::validation_error(
-                        format!("Error fetching user details: {:?}", error).as_str(),
-                    ));
+                    return validation_error!("Error fetching user details: {:?}", error);
                 }
                 _ => {
-                    return Err(SimilariumError::validation_error(
-                        "Error fetching user details",
-                    ));
+                    return validation_error!("Error fetching user details");
                 }
             };
 

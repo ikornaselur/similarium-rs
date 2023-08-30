@@ -1,4 +1,4 @@
-use crate::{SimilariumError, SimilariumErrorType};
+use crate::SimilariumError;
 use time::{macros::format_description, Time};
 
 #[derive(Debug, Eq, PartialEq)]
@@ -16,12 +16,7 @@ pub fn parse_command(text: &str) -> Result<Command, SimilariumError> {
         ("help", _) => Command::Help,
         ("start", time) => {
             if time.is_empty() {
-                Err(SimilariumError {
-                    message: Some(
-                        "You must specify a time to start the game every day".to_string(),
-                    ),
-                    error_type: SimilariumErrorType::ValidationError,
-                })?;
+                return validation_error!("You must specify a time to start the game every day");
             }
             match Time::parse(time, &format_description!("[hour]:[minute]")) {
                 Ok(time) => Command::Start(time),
@@ -41,6 +36,8 @@ pub fn parse_command(text: &str) -> Result<Command, SimilariumError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use crate::SimilariumErrorType;
     use time::macros::time;
 
     #[test]

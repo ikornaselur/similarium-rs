@@ -45,7 +45,7 @@ pub fn get_progress_bar(
     width: usize,
 ) -> Result<String, SimilariumError> {
     if width < 1 {
-        return Err(SimilariumError::value_error("width must be at least 1"));
+        return value_error!("width must be at least 1");
     }
 
     // Handle full and empty bars
