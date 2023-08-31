@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.1](https://github.com/ikornaselur/similarium-rs/compare/v0.2.0...v0.2.1) (2023-08-31)
+
+
+### Miscellaneous
+
+* Use GITHUB_TOKEN for release-please ([3a3d401](https://github.com/ikornaselur/similarium-rs/commit/3a3d401f0f1680cefb08d4373e2a5f0041196cad))
+
+
+### Dependencies
+
+* Update dependencies ([1cecf94](https://github.com/ikornaselur/similarium-rs/commit/1cecf949fbe0f1d0c2c900692629557ecb76cd5e))
+
 ## [0.2.0](https://github.com/ikornaselur/similarium-rs/compare/v0.1.0...v0.2.0) (2023-08-30)
 
 
