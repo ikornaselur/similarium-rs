@@ -17,5 +17,5 @@ jobs:
         with:
           release-type: rust
           package-name: similarium
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
-          changelog-types: '[{"type":"feat","section":"Features"},{"type":"fix","section":"Bug Fixes"},{"type":"chore","section":"Miscellaneous"},{"type":"deps","section":"Dependencies"},{"type":"docs","section":"Documentation"}]'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          changelog-types: '[{"type":"feat","section":"Features"},{"type":"fix","section":"Bug Fixes"},{"type":"chore","section":"Miscellaneous"},{"type":"deps","section":"Dependencies"},{"type":"docs","section":"Documentation","hidden":true}]'
