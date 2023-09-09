@@ -1,5 +1,5 @@
 use crate::models::GuessContext;
-use crate::slack_client::utils::{get_progress_bar, rank_prefix};
+use crate::slack_client::utils::{formatted_rank, get_progress_bar};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -192,18 +192,9 @@ impl Block {
         let elements = vec![
             ContextElement::image(&context.profile_photo, &context.username),
             ContextElement::text(
-                format!(
-                    "{}{}{}",
-                    progress_bar,
-                    rank_prefix(context.rank),
-                    &context.rank
-                )
-                .as_str(),
+                format!("{}{}", progress_bar, formatted_rank(context.rank)).as_str(),
             ),
-            ContextElement::text(
-                format!("x. _{:.02}_ *{}*", context.similarity, context.word).as_str(),
-            ),
-            // x.      _0.5_    *word*
+            ContextElement::text(format!("*{}*", context.word).as_str()),
         ];
 
         Block {
@@ -290,6 +281,7 @@ mod tests {
     fn test_guess_context() {
         let context = GuessContext {
             word: "word".to_string(),
+            guess_num: 3,
             profile_photo: "photo".to_string(),
             username: "username".to_string(),
             similarity: 87.12598124,
@@ -311,11 +303,11 @@ mod tests {
     },
     {
       "type": "mrkdwn",
-      "text": ":p8::p8::p8::p8::p4::p0:    251"
+      "text": ":p8::p8::p8::p8::p4::p0:      251"
     },
     {
       "type": "mrkdwn",
-      "text": "x. _87.13_ *word*"
+      "text": "*word*"
     }
   ]
 }"#

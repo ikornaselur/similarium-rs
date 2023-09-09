@@ -15,6 +15,7 @@ pub struct Game {
 
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
 pub struct GuessContext {
+    pub guess_num: i64,
     pub word: String,
     pub username: String,
     pub profile_photo: String,
@@ -112,6 +113,24 @@ impl Game {
         Ok(())
     }
 
+    pub async fn get_guess_count(&self, db: &sqlx::PgPool) -> Result<i64, sqlx::Error> {
+        sqlx::query!(
+            r#"
+            SELECT
+                count(*)
+            FROM
+                guess
+            WHERE
+                game_id = $1
+            "#,
+            self.id,
+        )
+        .fetch_one(db)
+        .await?
+        .count
+        .map_or(Ok(0), Ok)
+    }
+
     pub async fn get_guess_contexts(
         &self,
         order: GuessContextOrder,
@@ -122,6 +141,7 @@ impl Game {
             r#"
             SELECT
                 word,
+                guess_num,
                 username,
                 profile_photo,
                 rank,

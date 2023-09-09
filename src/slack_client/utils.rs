@@ -1,4 +1,5 @@
 use crate::SimilariumError;
+use num_format::{Locale, ToFormattedString};
 use std::cmp::min;
 
 const SPACE: &str = " ";
@@ -7,19 +8,26 @@ const P: [&str; 9] = [
     ":p0:", ":p1:", ":p2:", ":p3:", ":p4:", ":p5:", ":p6:", ":p7:", ":p8:",
 ];
 
-/// Calculate the rank prefix for a given rank
+/// Format a rank with commans and required spacing
 ///
-/// Single digit values will have 8 spaces
-/// 2 digit values will have 6 spaces
-/// 3 digit values will have 4 spaces
-/// 4 digit values will have 2 spaces
-/// 5 digit values will have no space
-pub fn rank_prefix(rank: i64) -> String {
-    if rank > 9999 {
-        return String::new();
-    }
-    let space_count = 5 - rank.to_string().len();
-    SPACE.repeat(space_count * 2)
+/// Single digit values will have 10 spaces
+/// 2 digit values will have 8 spaces
+/// 3 digit values will have 6 spaces
+/// 4 digit values will have 3 spaces
+/// 5 digit values will have 1 space
+/// 6 digit (and above) values will have no space
+///
+pub fn formatted_rank(rank: i64) -> String {
+    let formatted_rank = rank.to_formatted_string(&Locale::en);
+
+    // It's magic, just trust it
+    let space_count = match formatted_rank.len() {
+        len @ 1..=3 => (6 - len) * 2,
+        len @ 5..=6 => (7 - len) * 2 - 1,
+        _ => 0,
+    };
+
+    format!("{}{}", SPACE.repeat(space_count), formatted_rank)
 }
 
 /// Generate a progress bar using custom emojis from :p0: to :p8:
@@ -91,13 +99,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_rank_prefix() {
-        assert_eq!(rank_prefix(1).len(), 8);
-        assert_eq!(rank_prefix(12).len(), 6);
-        assert_eq!(rank_prefix(123).len(), 4);
-        assert_eq!(rank_prefix(1234).len(), 2);
-        assert_eq!(rank_prefix(12345).len(), 0);
-        assert_eq!(rank_prefix(123456).len(), 0);
+    fn test_formatted_rank() {
+        assert_eq!(formatted_rank(1), "          1");
+        assert_eq!(formatted_rank(12), "        12");
+        assert_eq!(formatted_rank(123), "      123");
+        assert_eq!(formatted_rank(1234), "   1,234");
+        assert_eq!(formatted_rank(12345), " 12,345");
+        assert_eq!(formatted_rank(123456), "123,456");
     }
 
     #[test]

@@ -102,30 +102,4 @@ impl Word2Vec {
             similarity: row.2,
         })
     }
-
-    pub async fn get_top_hints(&self, db: &sqlx::PgPool) -> Result<(f64, f64, f64), sqlx::Error> {
-        let q = format!(
-            r#"
-            SELECT
-                similarity
-            FROM
-                word2vec_{}
-            OFFSET $1
-            LIMIT 1
-            "#,
-            self.word
-        );
-
-        let top = sqlx::query_scalar(q.as_str()).bind(1).fetch_one(db).await?;
-        let top10 = sqlx::query_scalar(q.as_str())
-            .bind(10)
-            .fetch_one(db)
-            .await?;
-        let top1000 = sqlx::query_scalar(q.as_str())
-            .bind(1000)
-            .fetch_one(db)
-            .await?;
-
-        Ok((top, top10, top1000))
-    }
 }

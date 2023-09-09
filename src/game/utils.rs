@@ -1,4 +1,4 @@
-use crate::models::{Game, GuessContextOrder, Word2Vec};
+use crate::models::{Game, GuessContextOrder};
 use crate::slack_client::Block;
 use crate::SimilariumError;
 use time::{
@@ -36,28 +36,18 @@ pub fn get_header_text(date: OffsetDateTime) -> Result<String, time::Error> {
 }
 
 /// Generate header body of a game for Slack message
-pub fn get_header_body(top: f64, top10: f64, top1000: f64) -> String {
-    format!(
-        "The nearest word has a similarity of {:.02}, \
-        the tenth-nearest has a similarity of {:.02} and \
-        the one thousandth nearest word has a similarity of {:.02}.",
-        top, top10, top1000,
-    )
+pub fn get_header_body(guesses: i64) -> String {
+    format!("*Guesses*: {}", guesses)
 }
 
 /// Generate the blocks for a game
 pub async fn get_game_blocks(game: Game, db: &sqlx::PgPool) -> Result<Vec<Block>, SimilariumError> {
-    let target_word = Word2Vec {
-        word: game.secret.clone(),
-    };
-    let (top, top10, top1000) = target_word.get_top_hints(db).await?;
-    let header_body = get_header_body(top, top10, top1000);
+    let header_body = get_header_body(game.get_guess_count(db).await?);
 
     let mut blocks = vec![
         Block::header(&game.date),
         Block::section(&header_body),
         // TODO: If finished?
-        Block::divider(),
     ];
 
     // Show latest
@@ -137,13 +127,6 @@ mod tests {
 
     #[test]
     fn test_get_header_body() {
-        assert_eq!(
-            get_header_body(67.31, 27.59, 13.12),
-            String::from(
-                "The nearest word has a similarity of 67.31, \
-                the tenth-nearest has a similarity of 27.59 and \
-                the one thousandth nearest word has a similarity of 13.12."
-            )
-        );
+        assert_eq!(get_header_body(123), String::from("*Guesses*: 123"));
     }
 }
