@@ -1,5 +1,5 @@
 use crate::models::GuessContext;
-use crate::slack_client::utils::{get_progress_bar, rank_prefix};
+use crate::slack_client::utils::{formatted_rank, get_progress_bar};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -192,13 +192,7 @@ impl Block {
         let elements = vec![
             ContextElement::image(&context.profile_photo, &context.username),
             ContextElement::text(
-                format!(
-                    "{}{}{}",
-                    progress_bar,
-                    rank_prefix(context.rank),
-                    &context.rank
-                )
-                .as_str(),
+                format!("{}{}", progress_bar, formatted_rank(context.rank)).as_str(),
             ),
             ContextElement::text(
                 format!("x. _{:.02}_ *{}*", context.similarity, context.word).as_str(),
