@@ -115,9 +115,7 @@ async fn manual_start(
     game.insert(db).await?;
 
     log::debug!("Setting up the message");
-    let (top, top10, top1000) = target_word.get_top_hints(db).await?;
-
-    let header_body = get_header_body(top, top10, top1000);
+    let header_body = get_header_body(game.get_guess_count(db).await?);
 
     let blocks: Vec<Block> = vec![
         Block::header(&header_text),
