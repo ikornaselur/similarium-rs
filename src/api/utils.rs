@@ -6,6 +6,7 @@ pub enum Command {
     Help,
     ManualStart,
     ManualEnd,
+    Debug,
     Start(NaiveTime),
     Stop,
     Invalid(String),
@@ -26,6 +27,7 @@ pub fn parse_command(text: &str) -> Result<Command, SimilariumError> {
         ("stop", _) => Command::Stop,
         ("manual", "start") => Command::ManualStart,
         ("manual", "end") => Command::ManualEnd,
+        ("debug", _) => Command::Debug,
         (first, rest) if !rest.is_empty() => {
             Command::Invalid(format!("Unknown command: {first} {rest}"))
         }

@@ -180,24 +180,12 @@ impl From<std::io::Error> for SimilariumError {
     }
 }
 
-/*
-impl From<time::error::InvalidFormatDescription> for SimilariumError {
-    fn from(error: time::error::InvalidFormatDescription) -> Self {
-        log::error!("Error parsing time: {}", error);
+impl From<fang::AsyncQueueError> for SimilariumError {
+    fn from(error: fang::AsyncQueueError) -> Self {
+        log::error!("AsyncQueueError: {}", error);
         SimilariumError {
-            message: Some("Unable to parse time".to_string()),
-            error_type: SimilariumErrorType::ValidationError,
+            message: Some("Unexpected AsyncQueueError".to_string()),
+            error_type: SimilariumErrorType::Error,
         }
     }
 }
-
-impl From<time::error::Format> for SimilariumError {
-    fn from(error: time::error::Format) -> Self {
-        log::error!("Error formatting time: {}", error);
-        SimilariumError {
-            message: Some("Unable to format time".to_string()),
-            error_type: SimilariumErrorType::ValidationError,
-        }
-    }
-}
-*/
