@@ -1,11 +1,11 @@
 use actix_web::middleware::Logger;
 use actix_web::{error, web, App, HttpRequest, HttpResponse, HttpServer};
 use sqlx::postgres::PgPoolOptions;
-use std::env;
 
 use crate::api::config::Config;
 use crate::api::scopes;
 use crate::slack_client::SlackClient;
+use crate::workers::start_workers;
 use crate::SimilariumError;
 
 async fn not_found(request: HttpRequest, text: String) -> HttpResponse {
@@ -24,18 +24,14 @@ pub struct AppState {
 
 pub async fn run() -> Result<(), SimilariumError> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+    let config = Config::init_from_env()?;
 
     log::info!("Running migrations");
     let pool = PgPoolOptions::new()
         .max_connections(5)
-        .connect(&env::var("DATABASE_URL")?)
+        .connect(&config.database_url)
         .await?;
     sqlx::migrate!("./migrations").run(&pool).await?;
-
-    let port: u16 = env::var("PORT")
-        .unwrap_or_else(|_| "8080".to_string())
-        .parse()?;
-    let host = env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
 
     let json_cfg = web::JsonConfig::default()
         .limit(4096)
@@ -45,10 +41,15 @@ pub async fn run() -> Result<(), SimilariumError> {
             error::InternalError::from_response(err, HttpResponse::Conflict().into()).into()
         });
 
-    log::info!("Starting server on {host}:{port}");
+    start_workers(
+        &config.database_url,
+        config.worker_count,
+        config.worker_max_pool_size,
+    )
+    .await?;
 
-    let slack_client_id = env::var("SLACK_CLIENT_ID")?;
-    let slack_client_secret = env::var("SLACK_CLIENT_SECRET")?;
+    log::info!("Starting server on {}:{}", config.host, config.port);
+    let bind_tuple = (config.host.clone(), config.port);
 
     HttpServer::new(move || {
         App::new()
@@ -56,16 +57,13 @@ pub async fn run() -> Result<(), SimilariumError> {
             .app_data(json_cfg.clone())
             .app_data(web::Data::new(AppState {
                 db: pool.clone(),
-                config: Config {
-                    slack_client_id: slack_client_id.clone(),
-                    slack_client_secret: slack_client_secret.clone(),
-                },
+                config: config.clone(),
                 slack_client: SlackClient::new(),
             }))
             .configure(scopes::config)
             .default_service(web::get().to(not_found))
     })
-    .bind((host, port))?
+    .bind(bind_tuple)?
     .run()
     .await?;
 

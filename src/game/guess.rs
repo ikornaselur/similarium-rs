@@ -1,4 +1,4 @@
-use crate::api::app::AppState;
+use crate::api::AppState;
 use crate::models::{Game, Guess, User, Word2Vec};
 use crate::SimilariumError;
 use uuid::Uuid;

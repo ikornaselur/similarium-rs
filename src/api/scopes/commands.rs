@@ -47,6 +47,26 @@ async fn post_similarium_command(
             .await?
         }
         Command::ManualEnd => todo!(),
+        Command::Debug => {
+            log::debug!("Inserting debug task");
+            let task = crate::tasks::DebugTask {
+                msg: "Hello".to_string(),
+            };
+            let a_task = &task as &dyn fang::AsyncRunnable;
+            sqlx::query!(
+                r#"
+                INSERT INTO "fang_tasks" 
+                    ("metadata", "task_type", "scheduled_at") 
+                VALUES 
+                    ($1, $2, $3)
+                "#,
+                serde_json::to_value(a_task).unwrap(),
+                &a_task.task_type(),
+                chrono::Utc::now(),
+            )
+            .execute(&app_state.db)
+            .await?;
+        }
         Command::Stop => todo!(),
         Command::Invalid(message) => {
             app_state

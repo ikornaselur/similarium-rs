@@ -1,8 +1,7 @@
 use dotenvy::dotenv;
 
 #[actix_web::main]
-async fn main() {
+async fn main() -> Result<(), similarium::SimilariumError> {
     dotenv().ok();
-
-    similarium::run().await.unwrap()
+    similarium::api::run().await
 }
