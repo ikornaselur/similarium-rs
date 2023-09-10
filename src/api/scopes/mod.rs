@@ -4,7 +4,7 @@ mod events;
 
 use actix_web::{get, web, Error, HttpResponse};
 
-#[get("")]
+#[get("/")]
 async fn home_handler() -> Result<HttpResponse, Error> {
     Ok(HttpResponse::Ok().body("Home, sweet home!"))
 }
