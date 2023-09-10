@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   api:
     image: similarium-rs:test
@@ -13,10 +15,17 @@ services:
       - HOST=0.0.0.0
       - DATABASE_URL=postgres://${DB_USERNAME}:${DB_PASSWORD}@db:5432/${DB_NAME}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
   db:
     image: tensorchord/pgvecto-rs:latest
     environment:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
