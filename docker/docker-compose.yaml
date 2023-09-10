@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   api:
-    image: similarium-rs:test
+    image: ghcr.io/ikornaselur/similarium-rs:latest
     ports:
       - "8080:8080"
     volumes:
