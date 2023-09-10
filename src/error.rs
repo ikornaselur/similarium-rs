@@ -180,6 +180,7 @@ impl From<std::io::Error> for SimilariumError {
     }
 }
 
+/*
 impl From<time::error::InvalidFormatDescription> for SimilariumError {
     fn from(error: time::error::InvalidFormatDescription) -> Self {
         log::error!("Error parsing time: {}", error);
@@ -199,3 +200,4 @@ impl From<time::error::Format> for SimilariumError {
         }
     }
 }
+*/

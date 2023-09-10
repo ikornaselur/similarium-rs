@@ -43,6 +43,23 @@ macro_rules! slack_api_error {
     };
 }
 
+macro_rules! datetime {
+    ($year:expr, $month:expr, $day:expr) => {
+        chrono::NaiveDate::from_ymd_opt($year, $month, $day)
+            .unwrap()
+            .and_hms_opt(0, 0, 0)
+            .unwrap()
+            .and_utc()
+    };
+    ($year:expr, $month:expr, $day:expr, $hour:expr, $minute:expr, $second:expr) => {
+        chrono::NaiveDate::from_ymd_opt($year, $month, $day)
+            .unwrap()
+            .and_hms_opt($hour, $minute, $second)
+            .unwrap()
+            .and_utc()
+    };
+}
+
 #[cfg(test)]
 mod test {
     use crate::{SimilariumError, SimilariumErrorType};

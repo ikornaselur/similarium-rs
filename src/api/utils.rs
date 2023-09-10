@@ -1,12 +1,12 @@
 use crate::SimilariumError;
-use time::{macros::format_description, Time};
+use chrono::NaiveTime;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Command {
     Help,
     ManualStart,
     ManualEnd,
-    Start(Time),
+    Start(NaiveTime),
     Stop,
     Invalid(String),
 }
@@ -18,7 +18,7 @@ pub fn parse_command(text: &str) -> Result<Command, SimilariumError> {
             if time.is_empty() {
                 return validation_error!("You must specify a time to start the game every day");
             }
-            match Time::parse(time, &format_description!("[hour]:[minute]")) {
+            match chrono::NaiveTime::parse_from_str(time, "%H:%M") {
                 Ok(time) => Command::Start(time),
                 Err(_) => Command::Invalid(format!("Invalid time: {time}")),
             }
@@ -38,7 +38,6 @@ mod tests {
     use super::*;
 
     use crate::SimilariumErrorType;
-    use time::macros::time;
 
     #[test]
     fn test_parse_command() {
@@ -86,7 +85,7 @@ mod tests {
     fn test_parse_command_start_parses_time_correctly() {
         assert_eq!(
             parse_command("start 23:59").unwrap(),
-            Command::Start(time!(23:59))
+            Command::Start(NaiveTime::from_hms_opt(23, 59, 0).unwrap())
         );
     }
 
