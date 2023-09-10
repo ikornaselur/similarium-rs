@@ -1874,6 +1874,7 @@ dependencies = [
  "serde_urlencoded",
  "sha2",
  "sqlx",
+ "tokio",
  "uuid",
 ]
 

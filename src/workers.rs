@@ -1,6 +1,10 @@
+use crate::tasks;
 use crate::SimilariumError;
 use fang::{
-    asynk::{async_queue::AsyncQueue, async_worker_pool::AsyncWorkerPool},
+    asynk::{
+        async_queue::{AsyncQueue, AsyncQueueable},
+        async_worker_pool::AsyncWorkerPool,
+    },
     NoTls,
 };
 
@@ -8,7 +12,7 @@ pub async fn start_workers(
     database_url: &str,
     worker_count: u32,
     max_pool_size: u32,
-) -> Result<(), SimilariumError> {
+) -> Result<AsyncQueue<NoTls>, SimilariumError> {
     log::info!("Starting worker pool with {} workers", worker_count);
 
     let mut queue = AsyncQueue::builder()
@@ -23,6 +27,17 @@ pub async fn start_workers(
         .build();
 
     pool.start().await;
+
+    Ok(queue)
+}
+
+pub async fn ensure_recurring_tasks(mut queue: AsyncQueue<NoTls>) -> Result<(), SimilariumError> {
+    log::info!("Scheduling hourly GameTask");
+
+    let game_task = tasks::GameTask {};
+    queue
+        .schedule_task(&game_task as &dyn fang::AsyncRunnable)
+        .await?;
 
     Ok(())
 }

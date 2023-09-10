@@ -1,11 +1,14 @@
 use actix_web::middleware::Logger;
 use actix_web::{error, web, App, HttpRequest, HttpResponse, HttpServer};
+use fang::{asynk::async_queue::AsyncQueue, NoTls};
 use sqlx::postgres::PgPoolOptions;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use crate::api::config::Config;
 use crate::api::scopes;
 use crate::slack_client::SlackClient;
-use crate::workers::start_workers;
+use crate::workers::{ensure_recurring_tasks, start_workers};
 use crate::SimilariumError;
 
 async fn not_found(request: HttpRequest, text: String) -> HttpResponse {
@@ -20,6 +23,7 @@ pub struct AppState {
     pub db: sqlx::PgPool,
     pub config: Config,
     pub slack_client: SlackClient,
+    pub queue: Arc<Mutex<AsyncQueue<NoTls>>>,
 }
 
 pub async fn run() -> Result<(), SimilariumError> {
@@ -41,12 +45,14 @@ pub async fn run() -> Result<(), SimilariumError> {
             error::InternalError::from_response(err, HttpResponse::Conflict().into()).into()
         });
 
-    start_workers(
+    let queue = start_workers(
         &config.database_url,
         config.worker_count,
         config.worker_max_pool_size,
     )
     .await?;
+
+    ensure_recurring_tasks(queue.clone()).await?;
 
     log::info!("Starting server on {}:{}", config.host, config.port);
     let bind_tuple = (config.host.clone(), config.port);
@@ -59,6 +65,7 @@ pub async fn run() -> Result<(), SimilariumError> {
                 db: pool.clone(),
                 config: config.clone(),
                 slack_client: SlackClient::new(),
+                queue: Arc::new(Mutex::new(queue.clone())),
             }))
             .configure(scopes::config)
             .default_service(web::get().to(not_found))
