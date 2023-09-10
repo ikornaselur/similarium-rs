@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use time::OffsetDateTime;
 use uuid::Uuid;
 
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
@@ -15,9 +14,9 @@ pub struct SlackBot {
     pub bot_user_id: Option<String>,
     pub bot_scopes: Option<String>,
     pub bot_refresh_token: Option<String>,
-    pub bot_token_expires_at: Option<OffsetDateTime>,
+    pub bot_token_expires_at: Option<chrono::DateTime<chrono::Utc>>,
     pub is_enterprise_install: bool,
-    pub installed_at: OffsetDateTime,
+    pub installed_at: chrono::DateTime<chrono::Utc>,
 }
 
 impl SlackBot {

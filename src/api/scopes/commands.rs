@@ -6,7 +6,6 @@ use crate::payloads::CommandPayload;
 use crate::slack_client::{Block, SlackClient};
 use crate::{SimilariumError, SimilariumErrorType};
 use actix_web::{post, web, HttpResponse, Scope};
-use time::macros::{datetime, format_description};
 use uuid::Uuid;
 
 #[post("/similarium")]
@@ -27,11 +26,10 @@ async fn post_similarium_command(
                 .await?;
         }
         Command::Start(time) => {
-            let format = format_description!("[hour]:[minute]");
             app_state
                 .slack_client
                 .post_message(
-                    &format!("Starting the game at {}", time.format(&format)?),
+                    &format!("Starting the game at {}", time.format("%H:%M")),
                     &payload.channel_id,
                     &token,
                     None,
@@ -98,8 +96,8 @@ async fn manual_start(
     };
     target_word.create_materialised_view(db).await?;
 
-    let datetime = datetime!(2023-08-08 00:00:00 UTC);
-    let header_text = get_header_text(datetime).unwrap();
+    let datetime = datetime!(2023, 8, 8);
+    let header_text = get_header_text(datetime);
 
     log::debug!("Setting up the game");
     let mut game = Game {
