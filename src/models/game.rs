@@ -172,4 +172,83 @@ impl Game {
 
         Ok(guesses)
     }
+
+    #[allow(dead_code)]
+    pub async fn get_next_puzzle_number(game_id: Uuid, db: &sqlx::PgPool) -> i64 {
+        let last_puzzle_number = match sqlx::query!(
+            r#"
+            SELECT
+                puzzle_number
+            FROM
+                game
+            WHERE
+                id = $1
+            ORDER BY
+                puzzle_number DESC
+            LIMIT 1
+            "#,
+            game_id
+        )
+        .fetch_optional(db)
+        .await
+        {
+            Ok(Some(game)) => game.puzzle_number,
+            _ => 0,
+        };
+
+        last_puzzle_number + 1
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::models::channel::Channel;
+
+    #[sqlx::test]
+    async fn test_get_next_puzzle_number_with_no_games_is_1(
+        pool: sqlx::PgPool,
+    ) -> sqlx::Result<()> {
+        let game_id = Uuid::new_v4();
+
+        let next_puzzle_number = Game::get_next_puzzle_number(game_id, &pool).await;
+
+        assert_eq!(next_puzzle_number, 1);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn test_get_next_puzzle_number_increments_last_highest(
+        pool: sqlx::PgPool,
+    ) -> sqlx::Result<()> {
+        // Insert a channel for the game
+        let channel_id = "channel_id".to_string();
+        let channel = Channel {
+            id: channel_id.clone(),
+            team_id: "team_id".to_string(),
+            hour: 0,
+            active: true,
+        };
+        channel.insert(&pool).await?;
+
+        let game_id = Uuid::new_v4();
+        let game = Game {
+            id: game_id,
+            channel_id: channel_id.clone(),
+            thread_ts: None,
+            puzzle_number: 3,
+            date: "date".to_string(),
+            active: true,
+            hint: None,
+            secret: "secret".to_string(),
+        };
+        game.insert(&pool).await?;
+
+        let next_puzzle_number = Game::get_next_puzzle_number(game_id, &pool).await;
+
+        assert_eq!(next_puzzle_number, 4);
+
+        Ok(())
+    }
 }
