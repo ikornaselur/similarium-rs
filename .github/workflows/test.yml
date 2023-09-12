@@ -1,7 +1,6 @@
 on: [push]
 
-name: Tast and lint
-
+name: Test and lint
 
 jobs:
   build:
@@ -65,6 +64,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+
     needs: [build]
     steps:
       - name: Checkout sources
@@ -81,6 +81,7 @@ jobs:
       - name: Run cargo test
         run: cargo test
         env:
+          SQLX_OFFLINE: 1
           DATABASE_URL: postgres://similarium:s3cr3t@localhost:5432/similarium
 
   lints:
