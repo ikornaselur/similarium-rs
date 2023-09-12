@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT \n                *\n            FROM\n                game\n            WHERE\n                channel_id = $1 AND\n                thread_ts = $2\n            ",
+  "query": "\n            SELECT \n                *\n            FROM\n                game\n            WHERE\n                id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -46,8 +46,7 @@
     ],
     "parameters": {
       "Left": [
-        "Text",
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -61,5 +60,5 @@
       true
     ]
   },
-  "hash": "5b062054b5cd0098191ea73f7e0bd90811268fdb73d62da07e6019a7fc3bc246"
+  "hash": "a72bdb049471b1efec71d0c1bf8b307f2cdf8aeda2844cc30c1b1edc6532be6c"
 }

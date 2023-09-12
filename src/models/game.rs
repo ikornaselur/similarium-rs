@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -7,7 +8,7 @@ pub struct Game {
     pub channel_id: String,
     pub thread_ts: Option<String>,
     pub puzzle_number: i64,
-    pub date: String,
+    pub date: DateTime<Utc>,
     pub active: bool,
     pub secret: String,
     pub hint: Option<String>,
@@ -52,6 +53,25 @@ impl Game {
             "#,
             channel_id,
             thread_ts
+        )
+        .fetch_optional(db)
+        .await?;
+        Ok(game)
+    }
+
+    pub async fn get_by_id(id: Uuid, db: &sqlx::PgPool) -> Result<Option<Game>, sqlx::Error> {
+        log::debug!("Fetching game for id: {}", id);
+        let game = sqlx::query_as!(
+            Game,
+            r#"
+            SELECT 
+                *
+            FROM
+                game
+            WHERE
+                id = $1
+            "#,
+            id
         )
         .fetch_optional(db)
         .await?;
@@ -173,8 +193,7 @@ impl Game {
         Ok(guesses)
     }
 
-    #[allow(dead_code)]
-    pub async fn get_next_puzzle_number(game_id: Uuid, db: &sqlx::PgPool) -> i64 {
+    pub async fn get_next_puzzle_number(channel_id: String, db: &sqlx::PgPool) -> i64 {
         let last_puzzle_number = match sqlx::query!(
             r#"
             SELECT
@@ -182,12 +201,12 @@ impl Game {
             FROM
                 game
             WHERE
-                id = $1
+                channel_id = $1
             ORDER BY
                 puzzle_number DESC
             LIMIT 1
             "#,
-            game_id
+            channel_id
         )
         .fetch_optional(db)
         .await
@@ -209,9 +228,9 @@ mod test {
     async fn test_get_next_puzzle_number_with_no_games_is_1(
         pool: sqlx::PgPool,
     ) -> sqlx::Result<()> {
-        let game_id = Uuid::new_v4();
+        let channel_id = "channel_id".to_string();
 
-        let next_puzzle_number = Game::get_next_puzzle_number(game_id, &pool).await;
+        let next_puzzle_number = Game::get_next_puzzle_number(channel_id, &pool).await;
 
         assert_eq!(next_puzzle_number, 1);
 
@@ -238,14 +257,14 @@ mod test {
             channel_id: channel_id.clone(),
             thread_ts: None,
             puzzle_number: 3,
-            date: "date".to_string(),
+            date: datetime!(2022, 5, 7),
             active: true,
             hint: None,
             secret: "secret".to_string(),
         };
         game.insert(&pool).await?;
 
-        let next_puzzle_number = Game::get_next_puzzle_number(game_id, &pool).await;
+        let next_puzzle_number = Game::get_next_puzzle_number(channel_id, &pool).await;
 
         assert_eq!(next_puzzle_number, 4);
 

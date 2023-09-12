@@ -9,7 +9,7 @@
         "Text",
         "Text",
         "Int8",
-        "Text",
+        "Timestamptz",
         "Bool",
         "Text",
         "Text"

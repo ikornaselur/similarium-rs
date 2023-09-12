@@ -43,6 +43,7 @@ macro_rules! slack_api_error {
     };
 }
 
+#[allow(unused_macros)] // Used in tests
 macro_rules! datetime {
     ($year:expr, $month:expr, $day:expr) => {
         chrono::NaiveDate::from_ymd_opt($year, $month, $day)

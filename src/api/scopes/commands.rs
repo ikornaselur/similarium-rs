@@ -1,9 +1,10 @@
 use actix_web::{post, web, HttpResponse, Scope};
+use chrono::Utc;
 use uuid::Uuid;
 
 use crate::api::app::AppState;
 use crate::api::utils::{parse_command, Command};
-use crate::game::utils::{get_header_body, get_header_text};
+use crate::game::utils::{get_header_body, get_header_text, get_secret};
 use crate::models::{Channel, Game, SlackBot, Word2Vec};
 use crate::payloads::CommandPayload;
 use crate::slack_client::{Block, SlackClient};
@@ -93,21 +94,24 @@ async fn manual_start(
     };
 
     log::debug!("Setting up target word");
+
+    let datetime = Utc::now();
+    let puzzle_number = Game::get_next_puzzle_number(channel.id.clone(), db).await;
+    let header_text = get_header_text(datetime, puzzle_number);
+
+    let secret = get_secret(channel.id.clone(), puzzle_number);
     let target_word = Word2Vec {
-        word: "car".to_string(),
+        word: secret.clone(),
     };
     target_word.create_materialised_view(db).await?;
-
-    let datetime = datetime!(2023, 8, 8);
-    let header_text = get_header_text(datetime);
 
     log::debug!("Setting up the game");
     let mut game = Game {
         id: Uuid::new_v4(),
-        channel_id: channel.id,
+        channel_id: channel.id.clone(),
         thread_ts: None,
-        puzzle_number: 1,
-        date: header_text.clone(),
+        puzzle_number,
+        date: datetime,
         active: true,
         hint: None,
         secret: target_word.word.clone(),
