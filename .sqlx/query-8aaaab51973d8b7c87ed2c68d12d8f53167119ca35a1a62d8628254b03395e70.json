@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                puzzle_number\n            FROM\n                game\n            WHERE\n                id = $1\n            ORDER BY\n                puzzle_number DESC\n            LIMIT 1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "puzzle_number",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "8aaaab51973d8b7c87ed2c68d12d8f53167119ca35a1a62d8628254b03395e70"
+}

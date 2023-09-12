@@ -1,6 +1,6 @@
 on: [push]
 
-name: Tast and lint
+name: Test and lint
 
 jobs:
   build:
@@ -51,6 +51,20 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: tensorchord/pgvecto-rs:latest
+        env:
+          POSTGRES_USER: similarium
+          POSTGRES_PASSWORD: s3cr3t
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     needs: [build]
     steps:
       - name: Checkout sources
@@ -66,6 +80,9 @@ jobs:
 
       - name: Run cargo test
         run: cargo test
+        env:
+          SQLX_OFFLINE: 1
+          DATABASE_URL: postgres://similarium:s3cr3t@localhost:5432/similarium
 
   lints:
     name: Lint
