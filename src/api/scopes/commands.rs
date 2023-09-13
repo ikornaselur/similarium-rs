@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::api::app::AppState;
 use crate::api::utils::{parse_command, Command};
-use crate::game::utils::{get_header_body, get_header_text, get_secret};
+use crate::game::utils::{get_header_body, get_header_text, get_help_blocks, get_secret};
 use crate::models::{Channel, Game, SlackBot, Word2Vec};
 use crate::payloads::CommandPayload;
 use crate::slack_client::{Block, SlackClient};
@@ -22,9 +22,16 @@ async fn post_similarium_command(
 
     match command {
         Command::Help => {
+            let help_blocks = get_help_blocks();
             app_state
                 .slack_client
-                .post_message("Help text", &payload.channel_id, &token, None)
+                .post_ephemeral(
+                    "Hello!",
+                    &payload.channel_id,
+                    &payload.user_id,
+                    &token,
+                    Some(help_blocks),
+                )
                 .await?;
         }
         Command::Start(time) => {
@@ -123,7 +130,7 @@ async fn manual_start(
 
     let blocks: Vec<Block> = vec![
         Block::header(&header_text),
-        Block::section(&header_body),
+        Block::section(&header_body, None),
         Block::divider(),
         Block::guess_input(),
     ];

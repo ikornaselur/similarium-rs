@@ -131,6 +131,8 @@ pub struct Block {
     label: Option<Text>,
     #[serde(skip_serializing_if = "Option::is_none")]
     elements: Option<Vec<ContextElement>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    fields: Option<Vec<Text>>,
 }
 
 impl Default for Block {
@@ -143,6 +145,7 @@ impl Default for Block {
             element: None,
             label: None,
             elements: None,
+            fields: None,
         }
     }
 }
@@ -155,18 +158,29 @@ impl Block {
             ..Default::default()
         }
     }
-    pub fn section(text: &str) -> Self {
-        Block {
-            r#type: BlockType::Section,
-            text: Some(Text::markdown(text, false)),
-            ..Default::default()
+
+    pub fn section(text: &str, fields: Option<Vec<&str>>) -> Self {
+        match fields {
+            Some(fields) => Block {
+                r#type: BlockType::Section,
+                text: Some(Text::markdown(text, false)),
+                fields: Some(fields.iter().map(|f| Text::markdown(f, false)).collect()),
+                ..Default::default()
+            },
+            None => Block {
+                r#type: BlockType::Section,
+                text: Some(Text::markdown(text, false)),
+                ..Default::default()
+            },
         }
     }
+
     pub fn divider() -> Self {
         Block {
             ..Default::default()
         }
     }
+
     pub fn input(block_id: &str, dispatch_action: bool, element: Element, label: Text) -> Self {
         Block {
             r#type: BlockType::Input,
@@ -177,11 +191,13 @@ impl Block {
             ..Default::default()
         }
     }
+
     pub fn guess_input() -> Self {
         let element = Element::new("submit-guess", Some(2));
         let label = Text::label("Guess");
         Block::input("guess", true, element, label)
     }
+
     pub fn guess_context(base_id: &str, context: GuessContext) -> Self {
         let block_id = format!("guess-{}-{}", base_id, context.word);
         let progress_bar = if context.rank < 1000 {
@@ -236,7 +252,7 @@ mod tests {
 
     #[test]
     fn test_serialising_section() {
-        let block = Block::section("Hello");
+        let block = Block::section("Hello", None);
         let json = serde_json::to_string_pretty(&block).unwrap();
         assert_eq!(
             json,
@@ -246,6 +262,32 @@ mod tests {
     "type": "mrkdwn",
     "text": "Hello"
   }
+}"#
+        );
+    }
+
+    #[test]
+    fn test_serialising_section_with_fields() {
+        let block = Block::section("Hello", Some(vec!["field1", "field2"]));
+        let json = serde_json::to_string_pretty(&block).unwrap();
+        assert_eq!(
+            json,
+            r#"{
+  "type": "section",
+  "text": {
+    "type": "mrkdwn",
+    "text": "Hello"
+  },
+  "fields": [
+    {
+      "type": "mrkdwn",
+      "text": "field1"
+    },
+    {
+      "type": "mrkdwn",
+      "text": "field2"
+    }
+  ]
 }"#
         );
     }

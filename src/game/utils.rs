@@ -25,13 +25,13 @@ pub async fn get_game_blocks(game: Game, db: &sqlx::PgPool) -> Result<Vec<Block>
     let header = get_header_text(game.date, game.puzzle_number);
     let mut blocks = vec![
         Block::header(&header),
-        Block::section(&header_body),
+        Block::section(&header_body, None),
         // TODO: If finished?
     ];
 
     // Show latest
     if game.active {
-        blocks.push(Block::section("*Latest guesses*"));
+        blocks.push(Block::section("*Latest guesses*", None));
 
         let game_guesses = game
             .get_guess_contexts(GuessContextOrder::GuessNum, 3, db)
@@ -44,7 +44,7 @@ pub async fn get_game_blocks(game: Game, db: &sqlx::PgPool) -> Result<Vec<Block>
     }
 
     // Show top
-    blocks.push(Block::section("*Top guesses*"));
+    blocks.push(Block::section("*Top guesses*", None));
     let game_guesses = game
         .get_guess_contexts(GuessContextOrder::Rank, 15, db)
         .await?;
@@ -60,6 +60,35 @@ pub async fn get_game_blocks(game: Game, db: &sqlx::PgPool) -> Result<Vec<Block>
     }
 
     Ok(blocks)
+}
+
+/// Generate the help messsage for the user
+pub fn get_help_blocks() -> Vec<Block> {
+    vec![
+        Block::section("Hello there :wave: here's what you can do!", None),
+        Block::section(
+            "*Start a daily puzzle at a specific time*\nStart posting a \
+            daily puzzle at the provided time on the current channel. The \
+            time can be something like \"9am\" or \"13:00\" for example.\nThe \
+            time will be based on your timezone.\nThe puzzle will be \
+            posted at the start of the hour.\n_Please note that the daily \
+            game is posted at the start of every hour, so if you specify \
+            13:45, it will be posted at 13:00_",
+            Some(vec!["Start a daily puzzle", "`/similarium start [time]`"]),
+        ),
+        Block::section(
+            "*Stop posting the daily puzzle*\nStop posting a daily puzzle \
+            if there is one",
+            Some(vec!["Stop a daily puzzle", "`/similarium stop`"]),
+        ),
+        Block::section(
+            "*About*",
+            Some(vec![
+                "Version",
+                option_env!("PACKAGE_VERSION").unwrap_or("unknown"),
+            ]),
+        ),
+    ]
 }
 
 /// Get the secret word for a channel and puzzle number
