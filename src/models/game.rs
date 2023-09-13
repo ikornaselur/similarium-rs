@@ -26,7 +26,7 @@ pub struct GuessContext {
 
 pub enum GuessContextOrder {
     Rank,
-    GuessNum,
+    GuessUpdated,
 }
 
 impl Game {
@@ -180,7 +180,7 @@ impl Game {
             "#,
             match order {
                 GuessContextOrder::Rank => "rank ASC",
-                GuessContextOrder::GuessNum => "guess_num DESC",
+                GuessContextOrder::GuessUpdated => "updated DESC",
             },
         );
 

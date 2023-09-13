@@ -15,15 +15,19 @@ pub async fn submit_guess(
     };
     let similarity = secret.get_similarity(guess, &app_state.db).await?;
 
-    if Guess::get(game.id, guess, &app_state.db).await?.is_some() {
-        // TODO: Implement an update to the game on this
-        return validation_error!("You have already guessed this word");
+    if let Some(mut guess) = Guess::get(game.id, guess, &app_state.db).await? {
+        log::debug!("Guess has already been made, updating timestamp");
+        guess
+            .update_latest_guess_user_id(&user.id, &app_state.db)
+            .await?;
+
+        return Ok(());
     }
 
     let guess = Guess {
         id: Uuid::new_v4(),
         game_id: game.id,
-        updated: 0,
+        updated: chrono::Utc::now().timestamp_millis(),
         user_id: user.id.clone(),
         word: guess.to_string(),
         rank: similarity.rank,

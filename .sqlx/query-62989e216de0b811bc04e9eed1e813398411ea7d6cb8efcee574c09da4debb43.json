@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE\n                guess\n            SET\n                updated = $1,\n                latest_guess_user_id = $2\n            WHERE\n                id = $3;\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "62989e216de0b811bc04e9eed1e813398411ea7d6cb8efcee574c09da4debb43"
+}

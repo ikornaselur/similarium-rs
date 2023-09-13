@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE \n                channel\n            SET \n                active = $1\n            WHERE\n                id = $2;\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0e6f708c25f3a75fbfac6df01b25ebddaabf78893543c9c6403ea1aa9490c3b3"
+}

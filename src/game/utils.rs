@@ -34,7 +34,7 @@ pub async fn get_game_blocks(game: Game, db: &sqlx::PgPool) -> Result<Vec<Block>
         blocks.push(Block::section("*Latest guesses*", None));
 
         let game_guesses = game
-            .get_guess_contexts(GuessContextOrder::GuessNum, 3, db)
+            .get_guess_contexts(GuessContextOrder::GuessUpdated, 3, db)
             .await?;
         blocks.extend(
             game_guesses
