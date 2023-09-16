@@ -7,6 +7,15 @@ macro_rules! validation_error {
     };
 }
 
+macro_rules! db_error {
+    ($($t:tt)*) => {
+        Err($crate::error::SimilariumError {
+            message: Some(format!($($t)*)),
+            error_type: $crate::error::SimilariumErrorType::DbError,
+        })
+    };
+}
+
 macro_rules! value_error {
     ($($t:tt)*) => {
         Err($crate::error::SimilariumError {
