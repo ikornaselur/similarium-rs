@@ -67,10 +67,10 @@ pub fn when_human(hour: u32) -> String {
 }
 
 /// Take a NaiveTime and a timezone offset in seconds and return the hour
-pub fn get_hour(time: NaiveTime, timezone_offset: i32) -> u32 {
+pub fn get_hour(time: NaiveTime, timezone_offset: i32) -> i32 {
     let hours_offset = timezone_offset / 3600;
     let utc_hour = time.hour() as i32 - hours_offset;
-    (utc_hour + 24) as u32 % 24
+    (utc_hour + 24) %  24
 }
 
 #[cfg(test)]

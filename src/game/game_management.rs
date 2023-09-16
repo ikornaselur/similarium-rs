@@ -79,7 +79,7 @@ pub async fn start_game(
     match channel {
         Some(mut channel) => {
             channel.active = true;
-            channel.hour = hour.into();
+            channel.hour = hour;
             channel.update(db).await?;
         }
         None => {
@@ -87,7 +87,8 @@ pub async fn start_game(
             let channel = Channel {
                 id: payload.channel_id.clone(),
                 team_id: payload.team_id.clone(),
-                hour: hour.into(),
+                hour,
+                minute: 0,
                 active: true,
             };
             channel.insert(db).await?;
@@ -157,6 +158,7 @@ pub async fn manual_start(
                 id: payload.channel_id.clone(),
                 team_id: payload.team_id.clone(),
                 hour: 0,
+                minute: 0,
                 active: true,
             };
             channel.insert(db).await?;

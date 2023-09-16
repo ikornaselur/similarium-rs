@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 pub struct Channel {
     pub id: String,
     pub team_id: String,
-    pub hour: i64,
+    pub hour: i32,
+    pub minute: i32,
     pub active: bool,
 }
 
