@@ -1,3 +1,6 @@
+# Run lint and test
+all: lint test
+
 # Run `cargo build`
 build:
   cargo build

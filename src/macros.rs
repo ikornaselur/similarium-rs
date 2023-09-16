@@ -53,6 +53,16 @@ macro_rules! datetime {
 }
 
 #[cfg(test)]
+macro_rules! time {
+    ($hour:expr, $minute:expr) => {
+        chrono::NaiveTime::from_hms_opt($hour, $minute, 0).unwrap()
+    };
+    ($hour:expr, $minute:expr, $second:expr) => {
+        chrono::NaiveTime::from_hms_opt($hour, $minute, $second).unwrap()
+    };
+}
+
+#[cfg(test)]
 mod test {
     use crate::{SimilariumError, SimilariumErrorType};
 
