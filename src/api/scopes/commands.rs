@@ -1,13 +1,12 @@
 use actix_web::{post, web, HttpResponse, Scope};
-use uuid::Uuid;
 
 use crate::api::app::AppState;
 use crate::api::utils::{parse_command, Command};
-use crate::game::utils::{get_header_body, get_header_text};
-use crate::models::{Channel, Game, SlackBot, Word2Vec};
+use crate::game::utils::get_help_blocks;
+use crate::game::{manual_start, start_game, stop_game};
+use crate::models::SlackBot;
 use crate::payloads::CommandPayload;
-use crate::slack_client::{Block, SlackClient};
-use crate::{SimilariumError, SimilariumErrorType};
+use crate::SimilariumError;
 
 #[post("/similarium")]
 async fn post_similarium_command(
@@ -17,25 +16,76 @@ async fn post_similarium_command(
     let payload = form.into_inner();
     let token =
         SlackBot::get_slack_bot_token(&payload.team_id, &payload.api_app_id, &app_state.db).await?;
-    let command = parse_command(&payload.text)?;
-
-    match command {
-        Command::Help => {
+    let command = match parse_command(&payload.text) {
+        Ok(command) => command,
+        Err(e) => {
             app_state
                 .slack_client
-                .post_message("Help text", &payload.channel_id, &token, None)
-                .await?;
-        }
-        Command::Start(time) => {
-            app_state
-                .slack_client
-                .post_message(
-                    &format!("Starting the game at {}", time.format("%H:%M")),
+                .post_ephemeral(
+                    &e.message.unwrap(),
                     &payload.channel_id,
+                    &payload.user_id,
                     &token,
                     None,
                 )
                 .await?;
+            return Ok(HttpResponse::Ok().into());
+        }
+    };
+
+    match command {
+        Command::Help => {
+            let help_blocks = get_help_blocks();
+            app_state
+                .slack_client
+                .post_ephemeral(
+                    "Hello!",
+                    &payload.channel_id,
+                    &payload.user_id,
+                    &token,
+                    Some(help_blocks),
+                )
+                .await?;
+        }
+        Command::Start(time) => match start_game(
+            &app_state.db,
+            &app_state.slack_client,
+            &payload,
+            &token,
+            time,
+        )
+        .await
+        {
+            Ok(_) => {}
+            Err(e) => {
+                app_state
+                    .slack_client
+                    .post_ephemeral(
+                        &e.message.unwrap(),
+                        &payload.channel_id,
+                        &payload.user_id,
+                        &token,
+                        None,
+                    )
+                    .await?;
+            }
+        },
+        Command::Stop => {
+            match stop_game(&app_state.db, &app_state.slack_client, &payload, &token).await {
+                Ok(_) => {}
+                Err(e) => {
+                    app_state
+                        .slack_client
+                        .post_ephemeral(
+                            &e.message.unwrap(),
+                            &payload.channel_id,
+                            &payload.user_id,
+                            &token,
+                            None,
+                        )
+                        .await?;
+                }
+            }
         }
         Command::ManualStart => {
             manual_start(
@@ -49,103 +99,9 @@ async fn post_similarium_command(
         }
         Command::ManualEnd => todo!(),
         Command::Debug => todo!(),
-        Command::Stop => todo!(),
-        Command::Invalid(message) => {
-            app_state
-                .slack_client
-                .post_message(&message, &payload.channel_id, &token, None)
-                .await?;
-        }
     }
 
     Ok(HttpResponse::Ok().into())
-}
-
-async fn manual_start(
-    payload: &CommandPayload,
-    db: &sqlx::PgPool,
-    slack_client: &SlackClient,
-    channel_id: &str,
-    token: &str,
-) -> Result<(), SimilariumError> {
-    log::info!("Sending test blocks");
-
-    // Get, or create, the channel
-    let channel = match Channel::get(&payload.channel_id, db).await? {
-        Some(mut channel) => {
-            log::debug!("Found channel: {:?}", channel);
-            if !channel.active {
-                channel.set_active(true, db).await?;
-            }
-            channel
-        }
-        None => {
-            log::debug!("Channel not found, creating...");
-            let channel = Channel {
-                id: payload.channel_id.clone(),
-                team_id: payload.team_id.clone(),
-                hour: 0,
-                active: true,
-            };
-            channel.insert(db).await?;
-            channel
-        }
-    };
-
-    log::debug!("Setting up target word");
-    let target_word = Word2Vec {
-        word: "car".to_string(),
-    };
-    target_word.create_materialised_view(db).await?;
-
-    let datetime = datetime!(2023, 8, 8);
-    let header_text = get_header_text(datetime);
-
-    log::debug!("Setting up the game");
-    let mut game = Game {
-        id: Uuid::new_v4(),
-        channel_id: channel.id,
-        thread_ts: None,
-        puzzle_number: 1,
-        date: header_text.clone(),
-        active: true,
-        hint: None,
-        secret: target_word.word.clone(),
-    };
-    game.insert(db).await?;
-
-    log::debug!("Setting up the message");
-    let header_body = get_header_body(game.get_guess_count(db).await?);
-
-    let blocks: Vec<Block> = vec![
-        Block::header(&header_text),
-        Block::section(&header_body),
-        Block::divider(),
-        Block::guess_input(),
-    ];
-
-    log::debug!("Submitting the message");
-    let res = slack_client
-        .post_message("Manual start", channel_id, token, Some(blocks))
-        .await?;
-
-    // Get the thread_ts and update the game
-    let thread_ts = res
-        .get("ts")
-        .ok_or(SimilariumError {
-            message: Some("Could not get thread_ts from Slack response".to_string()),
-            error_type: SimilariumErrorType::MissingThreadTs,
-        })?
-        .as_str()
-        .ok_or(SimilariumError {
-            message: Some("Could not get thread_ts from Slack response".to_string()),
-            error_type: SimilariumErrorType::MissingThreadTs,
-        })?;
-
-    game.set_thread_ts(thread_ts, db).await?;
-
-    log::info!("Successfully sent test blocks");
-    Ok(())
 }
 
 pub fn scope() -> Scope {

@@ -6,6 +6,7 @@ const CHAT_UPDATE_URL: &str = "https://slack.com/api/chat.update";
 const OAUTH_API_URL: &str = "https://slack.com/api/oauth.v2.access";
 const POST_MESSAGE_URL: &str = "https://slack.com/api/chat.postMessage";
 const USER_DETAILS_URL: &str = "https://slack.com/api/users.info";
+const POST_EPHEMERAL_URL: &str = "https://slack.com/api/chat.postEphemeral";
 
 pub struct SlackClient {
     client: awc::Client,
@@ -39,6 +40,52 @@ impl SlackClient {
             self.client
                 .post(POST_MESSAGE_URL)
                 .send_form(&[("token", token), ("channel", channel_id), ("text", text)])
+                .await?
+        };
+
+        if !res.status().is_success() {
+            log::error!("Error posting to Slack API: {}", text);
+            return slack_api_error!("Error posting to Slack API: {}", text);
+        }
+
+        let payload = res.json::<serde_json::Value>().await?;
+        let ok = payload["ok"].as_bool().unwrap_or(false);
+        if !ok {
+            log::error!("Error posting to Slack API: {}", payload);
+            return slack_api_error!("Error posting to Slack API: {}", payload);
+        }
+
+        Ok(payload)
+    }
+
+    pub async fn post_ephemeral(
+        &self,
+        text: &str,
+        channel_id: &str,
+        user_id: &str,
+        token: &str,
+        blocks: Option<Vec<Block>>,
+    ) -> Result<serde_json::Value, SimilariumError> {
+        let mut res = if let Some(blocks) = blocks {
+            self.client
+                .post(POST_EPHEMERAL_URL)
+                .send_form(&[
+                    ("token", token),
+                    ("channel", channel_id),
+                    ("text", text),
+                    ("user", user_id),
+                    ("blocks", &serde_json::to_string(&blocks).unwrap()),
+                ])
+                .await?
+        } else {
+            self.client
+                .post(POST_EPHEMERAL_URL)
+                .send_form(&[
+                    ("token", token),
+                    ("channel", channel_id),
+                    ("text", text),
+                    ("user", user_id),
+                ])
                 .await?
         };
 

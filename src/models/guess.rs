@@ -93,4 +93,32 @@ impl Guess {
 
         Ok(())
     }
+
+    pub async fn update_latest_guess_user_id(
+        &mut self,
+        user_id: &str,
+        db: &sqlx::PgPool,
+    ) -> Result<(), sqlx::Error> {
+        self.updated = chrono::Utc::now().timestamp_millis();
+        self.latest_guess_user_id = user_id.to_string();
+
+        sqlx::query!(
+            r#"
+            UPDATE
+                guess
+            SET
+                updated = $1,
+                latest_guess_user_id = $2
+            WHERE
+                id = $3;
+            "#,
+            self.updated,
+            self.latest_guess_user_id,
+            self.id,
+        )
+        .execute(db)
+        .await?;
+
+        Ok(())
+    }
 }

@@ -3,7 +3,7 @@ mod macros;
 pub mod api;
 mod error;
 mod game;
-mod models;
+pub mod models;
 mod payloads;
 mod slack_client;
 mod tasks;

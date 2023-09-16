@@ -9,30 +9,32 @@ pub enum Command {
     Debug,
     Start(NaiveTime),
     Stop,
-    Invalid(String),
 }
 
 pub fn parse_command(text: &str) -> Result<Command, SimilariumError> {
-    Ok(match text.split_once(' ').unwrap_or((text, "")) {
-        ("help", _) => Command::Help,
+    match text.split_once(' ').unwrap_or((text, "")) {
+        ("help", _) => Ok(Command::Help),
         ("start", time) => {
             if time.is_empty() {
-                return validation_error!("You must specify a time to start the game every day");
-            }
-            match chrono::NaiveTime::parse_from_str(time, "%H:%M") {
-                Ok(time) => Command::Start(time),
-                Err(_) => Command::Invalid(format!("Invalid time: {time}")),
+                validation_error!(":no_entry_sign: You must specify a time to start the game every day in a 24-hour HH:MM format")
+            } else {
+                match chrono::NaiveTime::parse_from_str(time, "%H:%M") {
+                    Ok(time) => Ok(Command::Start(time)),
+                    Err(_) => {
+                        validation_error!(":no_entry_sign: Unable to parse the time, please specify it in a 24-hour HH:MM format")
+                    }
+                }
             }
         }
-        ("stop", _) => Command::Stop,
-        ("manual", "start") => Command::ManualStart,
-        ("manual", "end") => Command::ManualEnd,
-        ("debug", _) => Command::Debug,
+        ("stop", _) => Ok(Command::Stop),
+        ("manual", "start") => Ok(Command::ManualStart),
+        ("manual", "end") => Ok(Command::ManualEnd),
+        ("debug", _) => Ok(Command::Debug),
         (first, rest) if !rest.is_empty() => {
-            Command::Invalid(format!("Unknown command: {first} {rest}"))
+            validation_error!("Unknown command: {first} {rest}")
         }
-        (first, _) => Command::Invalid(format!("Unknown command: {first}")),
-    })
+        (first, _) => validation_error!("Unknown command: {first}"),
+    }
 }
 
 #[cfg(test)]
@@ -54,12 +56,12 @@ mod tests {
     #[test]
     fn test_parse_command_returns_error_on_unknown_command() {
         assert_eq!(
-            parse_command("foobar").unwrap(),
-            Command::Invalid("Unknown command: foobar".to_string())
+            parse_command("foobar"),
+            validation_error!("Unknown command: foobar")
         );
         assert_eq!(
-            parse_command("foo bar").unwrap(),
-            Command::Invalid("Unknown command: foo bar".to_string())
+            parse_command("foo bar"),
+            validation_error!("Unknown command: foo bar")
         );
     }
 
@@ -74,12 +76,12 @@ mod tests {
     #[test]
     fn test_parse_command_start_raises_with_invalid_time() {
         assert_eq!(
-            parse_command("start 25:00").unwrap(),
-            Command::Invalid("Invalid time: 25:00".to_string())
+            parse_command("start 25:00"),
+            validation_error!(":no_entry_sign: Unable to parse the time, please specify it in a 24-hour HH:MM format")
         );
         assert_eq!(
-            parse_command("start around midnight maybe?").unwrap(),
-            Command::Invalid("Invalid time: around midnight maybe?".to_string())
+            parse_command("start around midnight maybe?"),
+            validation_error!(":no_entry_sign: Unable to parse the time, please specify it in a 24-hour HH:MM format"),
         );
     }
 
@@ -88,6 +90,11 @@ mod tests {
         assert_eq!(
             parse_command("start 23:59").unwrap(),
             Command::Start(NaiveTime::from_hms_opt(23, 59, 0).unwrap())
+        );
+
+        assert_eq!(
+            parse_command("start 3:00").unwrap(),
+            Command::Start(NaiveTime::from_hms_opt(3, 0, 0).unwrap())
         );
     }
 
@@ -104,8 +111,8 @@ mod tests {
     #[test]
     fn test_parse_command_manual_unknown() {
         assert_eq!(
-            parse_command("manual foobar").unwrap(),
-            Command::Invalid("Unknown command: manual foobar".to_string())
+            parse_command("manual foobar"),
+            validation_error!("Unknown command: manual foobar")
         );
     }
 }

@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                puzzle_number\n            FROM\n                game\n            WHERE\n                channel_id = $1\n            ORDER BY\n                puzzle_number DESC\n            LIMIT 1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "puzzle_number",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "cc52258b8af6f8b907537edfa90c3b63d4f09b0b5182db4c0c73b00b07761f02"
+}

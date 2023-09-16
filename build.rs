@@ -2,4 +2,8 @@
 fn main() {
     // trigger recompilation when a new migration is added
     println!("cargo:rerun-if-changed=migrations");
+
+    // Get the package version from Cargo.toml
+    let package_version = env!("CARGO_PKG_VERSION");
+    println!("cargo:rustc-env=PACKAGE_VERSION={}", package_version);
 }

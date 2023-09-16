@@ -13,19 +13,24 @@ impl Channel {
         let channel = sqlx::query_as!(
             Channel,
             r#"
-            SELECT * FROM channel WHERE id = $1;
+            SELECT * FROM
+                channel 
+            WHERE
+                id = $1;
             "#,
             channel_id
         )
         .fetch_optional(db)
         .await?;
+
         Ok(channel)
     }
 
     pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
         sqlx::query!(
             r#"
-            INSERT INTO channel(id, team_id, hour, active)
+            INSERT INTO
+                channel(id, team_id, hour, active)
             VALUES ($1, $2, $3, $4);
             "#,
             self.id,
@@ -35,22 +40,37 @@ impl Channel {
         )
         .execute(db)
         .await?;
+
         Ok(())
     }
 
-    pub async fn set_active(&mut self, active: bool, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
-        self.active = active;
+    /// Update the channel in the database
+    ///
+    /// Updates:
+    ///     * active
+    ///     * hour
+    ///
+    /// Does not update:
+    ///     * id
+    ///     * team_id
+    pub async fn update(&mut self, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
         sqlx::query!(
             r#"
-            UPDATE channel
-            SET active = $1
-            WHERE id = $2;
+            UPDATE 
+                channel
+            SET 
+                hour = $1,
+                active = $2
+            WHERE
+                id = $3;
             "#,
+            self.hour,
             self.active,
             self.id,
         )
         .execute(db)
         .await?;
+
         Ok(())
     }
 }

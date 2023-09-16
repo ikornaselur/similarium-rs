@@ -1,48 +1,40 @@
 macro_rules! validation_error {
-    ($message:expr) => {
+    ($($t:tt)*) => {
         Err($crate::error::SimilariumError {
-            message: Some($message.to_string()),
-            error_type: $crate::error::SimilariumErrorType::ValidationError,
-        })
-    };
-    ($message:expr, $($arg:tt)+) => {
-        Err($crate::error::SimilariumError {
-            message: Some(format!($message, $($arg)*)),
+            message: Some(format!($($t)*)),
             error_type: $crate::error::SimilariumErrorType::ValidationError,
         })
     };
 }
 
-macro_rules! value_error {
-    ($message:expr) => {
+macro_rules! db_error {
+    ($($t:tt)*) => {
         Err($crate::error::SimilariumError {
-            message: Some($message.to_string()),
-            error_type: $crate::error::SimilariumErrorType::ValueError,
+            message: Some(format!($($t)*)),
+            error_type: $crate::error::SimilariumErrorType::DbError,
         })
     };
-    ($message:expr, $($arg:tt)+) => {
+}
+
+macro_rules! value_error {
+    ($($t:tt)*) => {
         Err($crate::error::SimilariumError {
-            message: Some(format!($message, $($arg)*)),
+            message: Some(format!($($t)*)),
             error_type: $crate::error::SimilariumErrorType::ValueError,
         })
     };
 }
 
 macro_rules! slack_api_error {
-    ($message:expr) => {
+    ($($t:tt)*) => {
         Err($crate::error::SimilariumError {
-            message: Some($message.to_string()),
-            error_type: $crate::error::SimilariumErrorType::SlackApiError,
-        })
-    };
-    ($message:expr, $($arg:tt)+) => {
-        Err($crate::error::SimilariumError {
-            message: Some(format!($message, $($arg)*)),
+            message: Some(format!($($t)*)),
             error_type: $crate::error::SimilariumErrorType::SlackApiError,
         })
     };
 }
 
+#[cfg(test)]
 macro_rules! datetime {
     ($year:expr, $month:expr, $day:expr) => {
         chrono::NaiveDate::from_ymd_opt($year, $month, $day)
