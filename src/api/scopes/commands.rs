@@ -18,7 +18,22 @@ async fn post_similarium_command(
     let payload = form.into_inner();
     let token =
         SlackBot::get_slack_bot_token(&payload.team_id, &payload.api_app_id, &app_state.db).await?;
-    let command = parse_command(&payload.text)?;
+    let command = match parse_command(&payload.text) {
+        Ok(command) => command,
+        Err(e) => {
+            app_state
+                .slack_client
+                .post_ephemeral(
+                    &e.message.unwrap(),
+                    &payload.channel_id,
+                    &payload.user_id,
+                    &token,
+                    None,
+                )
+                .await?;
+            return Ok(HttpResponse::Ok().into());
+        }
+    };
 
     match command {
         Command::Help => {
@@ -58,12 +73,6 @@ async fn post_similarium_command(
         Command::ManualEnd => todo!(),
         Command::Debug => todo!(),
         Command::Stop => todo!(),
-        Command::Invalid(message) => {
-            app_state
-                .slack_client
-                .post_message(&message, &payload.channel_id, &token, None)
-                .await?;
-        }
     }
 
     Ok(HttpResponse::Ok().into())

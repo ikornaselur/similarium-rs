@@ -69,7 +69,7 @@ pub fn get_help_blocks() -> Vec<Block> {
         Block::section(
             "*Start a daily puzzle at a specific time*\nStart posting a \
             daily puzzle at the provided time on the current channel. The \
-            time can be something like \"9am\" or \"13:00\" for example.\nThe \
+            time has to be in 24-hour format, like \"13:00\" for example.\nThe \
             time will be based on your timezone.\nThe puzzle will be \
             posted at the start of the hour.\n_Please note that the daily \
             game is posted at the start of every hour, so if you specify \
