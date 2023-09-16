@@ -32,7 +32,7 @@ pub async fn start_workers(
 }
 
 pub async fn ensure_recurring_tasks(mut queue: AsyncQueue<NoTls>) -> Result<(), SimilariumError> {
-    log::info!("Scheduling hourly GameTask");
+    log::info!("Scheduling GameTask to run every minute");
 
     let game_task = tasks::GameTask {};
     queue

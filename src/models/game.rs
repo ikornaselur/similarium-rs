@@ -247,6 +247,7 @@ mod test {
             id: channel_id.clone(),
             team_id: "team_id".to_string(),
             hour: 0,
+            minute: 0,
             active: true,
         };
         channel.insert(&pool).await?;

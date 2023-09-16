@@ -6,7 +6,7 @@ use crate::models::{Channel, Game, Word2Vec};
 use crate::payloads::CommandPayload;
 use crate::slack_client::responses::UserInfoResponse;
 use crate::slack_client::{Block, SlackClient};
-use crate::utils::{get_hour, when_human};
+use crate::utils::{get_utc_naive_time, when_human};
 use crate::{SimilariumError, SimilariumErrorType};
 
 pub async fn start_game(
@@ -40,13 +40,15 @@ pub async fn start_game(
     };
 
     // Convert the given time to UTC, using the timezone offset
-    let hour = get_hour(time, user.tz_offset);
-    let when_human = when_human(time.hour());
+    let utc_time = get_utc_naive_time(time, user.tz_offset);
+    let when = when_human(time);
     let tz_offset = if user.tz_offset < 0 {
         format!("UTC-{}", user.tz_offset / 3600)
     } else {
         format!("UTC+{}", user.tz_offset / 3600)
     };
+
+    log::info!("Starting game on channel {}: {}", payload.channel_id, when);
 
     // Post that the game is starting, cathing an error if slack fails, so that we can tell the
     // user that Similarium doesn't have the required permissions
@@ -54,7 +56,7 @@ pub async fn start_game(
         .post_message(
             &format!(
                 "<@{}> has started a daily game of Similarium {} {}",
-                user.id, when_human, tz_offset
+                user.id, when, tz_offset
             ),
             &payload.channel_id,
             token,
@@ -79,7 +81,8 @@ pub async fn start_game(
     match channel {
         Some(mut channel) => {
             channel.active = true;
-            channel.hour = hour.into();
+            channel.hour = utc_time.hour() as i32;
+            channel.minute = utc_time.minute() as i32;
             channel.update(db).await?;
         }
         None => {
@@ -87,7 +90,8 @@ pub async fn start_game(
             let channel = Channel {
                 id: payload.channel_id.clone(),
                 team_id: payload.team_id.clone(),
-                hour: hour.into(),
+                hour: utc_time.hour() as i32,
+                minute: utc_time.minute() as i32,
                 active: true,
             };
             channel.insert(db).await?;
@@ -157,6 +161,7 @@ pub async fn manual_start(
                 id: payload.channel_id.clone(),
                 team_id: payload.team_id.clone(),
                 hour: 0,
+                minute: 0,
                 active: true,
             };
             channel.insert(db).await?;

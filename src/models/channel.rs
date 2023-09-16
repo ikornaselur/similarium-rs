@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 pub struct Channel {
     pub id: String,
     pub team_id: String,
-    pub hour: i64,
+    pub hour: i32,
+    pub minute: i32,
     pub active: bool,
 }
 
@@ -30,12 +31,13 @@ impl Channel {
         sqlx::query!(
             r#"
             INSERT INTO
-                channel(id, team_id, hour, active)
-            VALUES ($1, $2, $3, $4);
+                channel(id, team_id, hour, minute, active)
+            VALUES ($1, $2, $3, $4, $5);
             "#,
             self.id,
             self.team_id,
             self.hour,
+            self.minute,
             self.active,
         )
         .execute(db)
@@ -49,6 +51,7 @@ impl Channel {
     /// Updates:
     ///     * active
     ///     * hour
+    ///     * minute
     ///
     /// Does not update:
     ///     * id
@@ -59,13 +62,15 @@ impl Channel {
             UPDATE 
                 channel
             SET 
-                hour = $1,
-                active = $2
+                active = $1,
+                hour = $2,
+                minute = $3
             WHERE
-                id = $3;
+                id = $4;
             "#,
-            self.hour,
             self.active,
+            self.hour,
+            self.minute,
             self.id,
         )
         .execute(db)
