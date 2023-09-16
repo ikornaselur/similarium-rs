@@ -22,7 +22,7 @@ impl AsyncRunnable for GameTask {
     }
 
     fn cron(&self) -> Option<Scheduled> {
-        let expression = "0 0 * * * *";
+        let expression = "0 * * * * *";
         Some(Scheduled::CronPattern(expression.to_string()))
     }
 

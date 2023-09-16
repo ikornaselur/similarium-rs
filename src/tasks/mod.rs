@@ -1,3 +1,3 @@
-mod hourly;
+mod minutely;
 
-pub use hourly::GameTask;
+pub use minutely::GameTask;
