@@ -14,6 +14,8 @@ pub struct UserInfo {
     pub name: String,
     pub real_name: String,
     pub profile: Profile,
+    pub tz: String,
+    pub tz_offset: i32,
 }
 
 #[derive(Deserialize, Debug)]

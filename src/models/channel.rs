@@ -44,17 +44,27 @@ impl Channel {
         Ok(())
     }
 
-    pub async fn set_active(&mut self, active: bool, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
-        self.active = active;
+    /// Update the channel in the database
+    ///
+    /// Updates:
+    ///     * active
+    ///     * hour
+    ///
+    /// Does not update:
+    ///     * id
+    ///     * team_id
+    pub async fn update(&mut self, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
         sqlx::query!(
             r#"
             UPDATE 
                 channel
             SET 
-                active = $1
+                hour = $1,
+                active = $2
             WHERE
-                id = $2;
+                id = $3;
             "#,
+            self.hour,
             self.active,
             self.id,
         )

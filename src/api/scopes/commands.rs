@@ -1,5 +1,5 @@
 use actix_web::{post, web, HttpResponse, Scope};
-use chrono::Utc;
+use chrono::{NaiveTime, Timelike, Utc};
 use uuid::Uuid;
 
 use crate::api::app::AppState;
@@ -7,8 +7,100 @@ use crate::api::utils::{parse_command, Command};
 use crate::game::utils::{get_header_body, get_header_text, get_help_blocks, get_secret};
 use crate::models::{Channel, Game, SlackBot, Word2Vec};
 use crate::payloads::CommandPayload;
+use crate::slack_client::responses::UserInfoResponse;
 use crate::slack_client::{Block, SlackClient};
+use crate::utils::{get_hour, when_human};
 use crate::{SimilariumError, SimilariumErrorType};
+
+async fn start_game(
+    app_state: &web::Data<AppState>,
+    payload: &CommandPayload,
+    token: &str,
+    time: NaiveTime,
+) -> Result<(), SimilariumError> {
+    // Get channel
+    let channel = Channel::get(&payload.channel_id, &app_state.db).await?;
+
+    // Check if channel exists and is active, error if so
+    if channel.as_ref().is_some_and(|channel| channel.active) {
+        return validation_error!(
+            ":no_entry_sign: Game is already registered for the channel. \
+             Please use the \"stop\" command before running \"start\" again."
+        );
+    }
+
+    // Get user info for timezone
+    let user = match app_state
+        .slack_client
+        .get_user_details(&payload.user_id, token)
+        .await
+    {
+        Ok(UserInfoResponse {
+            user: Some(user), ..
+        }) => user,
+        _ => {
+            return slack_api_error!("Error fetching user details");
+        }
+    };
+
+    // Convert the given time to UTC, using the timezone offset
+    let hour = get_hour(time, user.tz_offset);
+    let when_human = when_human(time.hour());
+    let tz_offset = if user.tz_offset < 0 {
+        format!("UTC-{}", user.tz_offset / 3600)
+    } else {
+        format!("UTC+{}", user.tz_offset / 3600)
+    };
+
+    // Post that the game is starting, cathing an error if slack fails, so that we can tell the
+    // user that Similarium doesn't have the required permissions
+    match app_state
+        .slack_client
+        .post_message(
+            &format!(
+                "<@{}> has started a daily game of Similarium {} {}",
+                user.id, when_human, tz_offset
+            ),
+            &payload.channel_id,
+            token,
+            None,
+        )
+        .await
+    {
+        Ok(_) => {}
+        Err(e) => {
+            // TODO: Explore how this works .. as we're responding back ephemerally with the
+            // channel_id, which will fail because the bot isn't in the channel? But this works in
+            // the Python version
+            log::error!("Error posting to Slack API: {}", e);
+            return slack_api_error!(
+                ":no_entry_sign: Unable to post to channel. You need to \
+                 invite @Similarium to this channel: `/invite @Similarium`"
+            );
+        }
+    };
+
+    // Create the channel if it doesn't exist, otherwise update active + time
+    match channel {
+        Some(mut channel) => {
+            channel.active = true;
+            channel.hour = hour.into();
+            channel.update(&app_state.db).await?;
+        }
+        None => {
+            log::debug!("Channel not found, creating...");
+            let channel = Channel {
+                id: payload.channel_id.clone(),
+                team_id: payload.team_id.clone(),
+                hour: hour.into(),
+                active: true,
+            };
+            channel.insert(&app_state.db).await?;
+        }
+    };
+
+    Ok(())
+}
 
 #[post("/similarium")]
 async fn post_similarium_command(
@@ -49,17 +141,21 @@ async fn post_similarium_command(
                 )
                 .await?;
         }
-        Command::Start(time) => {
-            app_state
-                .slack_client
-                .post_message(
-                    &format!("Starting the game at {}", time.format("%H:%M")),
-                    &payload.channel_id,
-                    &token,
-                    None,
-                )
-                .await?;
-        }
+        Command::Start(time) => match start_game(&app_state, &payload, &token, time).await {
+            Ok(_) => {}
+            Err(e) => {
+                app_state
+                    .slack_client
+                    .post_ephemeral(
+                        &e.message.unwrap(),
+                        &payload.channel_id,
+                        &payload.user_id,
+                        &token,
+                        None,
+                    )
+                    .await?;
+            }
+        },
         Command::ManualStart => {
             manual_start(
                 &payload,
@@ -92,7 +188,8 @@ async fn manual_start(
         Some(mut channel) => {
             log::debug!("Found channel: {:?}", channel);
             if !channel.active {
-                channel.set_active(true, db).await?;
+                channel.active = true;
+                channel.update(db).await?;
             }
             channel
         }
