@@ -1,3 +1,4 @@
+use crate::SimilariumError;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, sqlx::FromRow)]
@@ -8,7 +9,7 @@ pub struct User {
 }
 
 impl User {
-    pub async fn get(user_id: &str, db: &sqlx::PgPool) -> Result<Option<User>, sqlx::Error> {
+    pub async fn get(user_id: &str, db: &sqlx::PgPool) -> Result<Option<User>, SimilariumError> {
         let user = sqlx::query_as!(
             User,
             r#"
@@ -26,7 +27,7 @@ impl User {
         Ok(user)
     }
 
-    pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
+    pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), SimilariumError> {
         sqlx::query!(
             r#"
             INSERT INTO 

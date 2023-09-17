@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT \n                * \n            FROM\n                channel \n            WHERE\n                id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "team_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "hour",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "active",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 4,
+        "name": "minute",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "b697c0fde52ba0f8fe94dc77fe94e70bd586c21a0e82d18cf3ccc6885fd7c2aa"
+}

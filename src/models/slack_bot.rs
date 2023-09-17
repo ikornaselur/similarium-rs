@@ -1,3 +1,4 @@
+use crate::SimilariumError;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -20,7 +21,7 @@ pub struct SlackBot {
 }
 
 impl SlackBot {
-    pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
+    pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), SimilariumError> {
         sqlx::query!(
             r#"
             INSERT INTO 
@@ -62,9 +63,8 @@ impl SlackBot {
 
     pub async fn get_slack_bot_token(
         team_id: &str,
-        api_app_id: &str,
         db: &sqlx::PgPool,
-    ) -> Result<String, sqlx::Error> {
+    ) -> Result<String, SimilariumError> {
         // Get the bot token
         sqlx::query_scalar!(
             r#"
@@ -73,16 +73,15 @@ impl SlackBot {
             FROM
                 slack_bots
             WHERE
-                team_id=$1 AND app_id=$2
+                team_id=$1
             ORDER BY 
                 installed_at DESC
             LIMIT 1;
             "#,
             team_id,
-            api_app_id,
         )
         .fetch_one(db)
         .await?
-        .ok_or(sqlx::Error::RowNotFound)
+        .ok_or(sqlx::Error::RowNotFound.into())
     }
 }

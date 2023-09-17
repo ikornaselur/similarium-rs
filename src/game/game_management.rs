@@ -227,8 +227,7 @@ pub async fn manual_start(
     Ok(())
 }
 
-pub async fn manual_end(
-    _payload: &CommandPayload,
+pub async fn end_games_on_channel(
     db: &sqlx::PgPool,
     slack_client: &SlackClient,
     channel_id: &str,

@@ -20,7 +20,6 @@ async fn post_events(
         EventPayload {
             actions,
             user,
-            api_app_id,
             channel,
             message,
             ..
@@ -32,13 +31,11 @@ async fn post_events(
             let local_user = get_or_create_user(
                 &user.id,
                 &user.team_id,
-                &api_app_id,
                 &app_state.db,
                 &app_state.slack_client,
             )
             .await?;
-            let token =
-                SlackBot::get_slack_bot_token(&user.team_id, &api_app_id, &app_state.db).await?;
+            let token = SlackBot::get_slack_bot_token(&user.team_id, &app_state.db).await?;
 
             let game = Game::get(channel.id.as_str(), message.ts.as_str(), &app_state.db)
                 .await?

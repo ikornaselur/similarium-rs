@@ -1,4 +1,5 @@
 use crate::models::Game;
+use crate::SimilariumError;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
@@ -11,11 +12,16 @@ pub struct Channel {
 }
 
 impl Channel {
-    pub async fn get(channel_id: &str, db: &sqlx::PgPool) -> Result<Option<Channel>, sqlx::Error> {
+    pub async fn get(
+        channel_id: &str,
+        db: &sqlx::PgPool,
+    ) -> Result<Option<Channel>, SimilariumError> {
         let channel = sqlx::query_as!(
             Channel,
             r#"
-            SELECT * FROM
+            SELECT 
+                * 
+            FROM
                 channel 
             WHERE
                 id = $1
@@ -28,7 +34,7 @@ impl Channel {
         Ok(channel)
     }
 
-    pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
+    pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), SimilariumError> {
         sqlx::query!(
             r#"
             INSERT INTO
@@ -57,7 +63,7 @@ impl Channel {
     /// Does not update:
     ///     * id
     ///     * team_id
-    pub async fn update(&mut self, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
+    pub async fn update(&mut self, db: &sqlx::PgPool) -> Result<(), SimilariumError> {
         sqlx::query!(
             r#"
             UPDATE 
@@ -80,7 +86,7 @@ impl Channel {
         Ok(())
     }
 
-    pub async fn get_active_games(&self, db: &sqlx::PgPool) -> Result<Vec<Game>, sqlx::Error> {
+    pub async fn get_active_games(&self, db: &sqlx::PgPool) -> Result<Vec<Game>, SimilariumError> {
         log::debug!("Fetching active games for channel: {}", self.id);
 
         let games = sqlx::query_as!(
@@ -100,5 +106,31 @@ impl Channel {
         .await?;
 
         Ok(games)
+    }
+
+    pub async fn get_channels_for_hour_minute(
+        hour: i32,
+        minute: i32,
+        db: &sqlx::PgPool,
+    ) -> Result<Vec<Channel>, SimilariumError> {
+        let channels = sqlx::query_as!(
+            Channel,
+            r#"
+            SELECT
+                *
+            FROM
+                channel
+            WHERE
+                hour = $1 AND
+                minute = $2 AND
+                active = true
+            "#,
+            hour,
+            minute
+        )
+        .fetch_all(db)
+        .await?;
+
+        Ok(channels)
     }
 }

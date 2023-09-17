@@ -1,6 +1,7 @@
 #[macro_use]
 mod macros;
 pub mod api;
+mod config;
 mod db;
 mod error;
 mod game;
@@ -8,7 +9,6 @@ pub mod models;
 mod payloads;
 mod slack_client;
 mod tasks;
-mod config;
 pub mod utils;
 pub mod workers;
 

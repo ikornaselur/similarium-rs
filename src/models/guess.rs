@@ -1,3 +1,4 @@
+use crate::SimilariumError;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -19,7 +20,7 @@ impl Guess {
         game_id: Uuid,
         word: &str,
         db: &sqlx::PgPool,
-    ) -> Result<Option<Guess>, sqlx::Error> {
+    ) -> Result<Option<Guess>, SimilariumError> {
         let guess = sqlx::query_as!(
             Guess,
             r#"
@@ -39,7 +40,7 @@ impl Guess {
         Ok(guess)
     }
 
-    pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
+    pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), SimilariumError> {
         let mut tx = db.begin().await?;
         sqlx::query!(
             r#"
@@ -98,7 +99,7 @@ impl Guess {
         &mut self,
         user_id: &str,
         db: &sqlx::PgPool,
-    ) -> Result<(), sqlx::Error> {
+    ) -> Result<(), SimilariumError> {
         self.updated = chrono::Utc::now().timestamp_millis();
         self.latest_guess_user_id = user_id.to_string();
 

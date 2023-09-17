@@ -82,6 +82,15 @@ impl SimilariumError {
     }
 }
 
+impl From<SimilariumError> for fang::FangError {
+    fn from(error: SimilariumError) -> Self {
+        log::error!("Background task error encountered");
+        fang::FangError {
+            description: error.message(),
+        }
+    }
+}
+
 impl From<sqlx::Error> for SimilariumError {
     fn from(error: sqlx::Error) -> Self {
         match error {
