@@ -39,7 +39,7 @@ pub async fn get_game_blocks(game: Game, db: &sqlx::PgPool) -> Result<Vec<Block>
         blocks.extend(
             game_guesses
                 .into_iter()
-                .map(|guess| Block::guess_context("latest", guess)),
+                .map(|guess| Block::guess_context("latest", guess, game.active)),
         );
     }
 
@@ -51,7 +51,7 @@ pub async fn get_game_blocks(game: Game, db: &sqlx::PgPool) -> Result<Vec<Block>
     blocks.extend(
         game_guesses
             .into_iter()
-            .map(|guess| Block::guess_context("top", guess)),
+            .map(|guess| Block::guess_context("top", guess, game.active)),
     );
 
     // Show input

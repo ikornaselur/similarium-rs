@@ -18,6 +18,10 @@ const P: [&str; 9] = [
 /// 6 digit (and above) values will have no space
 ///
 pub fn formatted_rank(rank: i64) -> String {
+    if rank == 0 {
+        // A special case, it's the secret, we'll render an emoji instaed of the rank
+        return format!("{}:tada:", SPACE.repeat(8));
+    }
     let formatted_rank = rank.to_formatted_string(&Locale::en);
 
     // It's magic, just trust it

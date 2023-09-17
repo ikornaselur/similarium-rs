@@ -69,20 +69,26 @@ mod test {
     #[test]
     fn test_validation_error_with_no_arguments() {
         let err: Result<usize, SimilariumError> = validation_error!("test");
-        assert!(err.is_err());
 
-        let err = err.unwrap_err();
-        assert_eq!(err.error_type, SimilariumErrorType::ValidationError);
-        assert_eq!(err.message.unwrap(), "test");
+        assert_eq!(
+            err,
+            Err(SimilariumError {
+                message: Some("test".to_string()),
+                error_type: SimilariumErrorType::ValidationError,
+            })
+        );
     }
 
     #[test]
     fn test_validation_error_with_arguments() {
         let err: Result<usize, SimilariumError> = validation_error!("test {} {}", 1, 2);
-        assert!(err.is_err());
 
-        let err = err.unwrap_err();
-        assert_eq!(err.error_type, SimilariumErrorType::ValidationError);
-        assert_eq!(err.message.unwrap(), "test 1 2");
+        assert_eq!(
+            err,
+            Err(SimilariumError {
+                message: Some("test 1 2".to_string()),
+                error_type: SimilariumErrorType::ValidationError,
+            })
+        );
     }
 }

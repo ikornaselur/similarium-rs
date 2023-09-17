@@ -198,19 +198,25 @@ impl Block {
         Block::input("guess", true, element, label)
     }
 
-    pub fn guess_context(base_id: &str, context: GuessContext) -> Self {
+    pub fn guess_context(base_id: &str, context: GuessContext, game_active: bool) -> Self {
         let block_id = format!("guess-{}-{}", base_id, context.word);
+
         let progress_bar = if context.rank < 1000 {
             get_progress_bar(1000 - context.rank as usize, 1000, 6).unwrap()
         } else {
             get_progress_bar(0, 1000, 6).unwrap()
         };
+
+        let word_element = match (context.is_secret, game_active) {
+            (false, _) => format!("*{}*", context.word),
+            (true, true) => "*Secret will be revealed at the end* :see_no_evil:".to_string(),
+            (true, false) => format!("*{}*", context.word),
+        };
+
         let elements = vec![
             ContextElement::image(&context.profile_photo, &context.username),
-            ContextElement::text(
-                format!("{}{}", progress_bar, formatted_rank(context.rank)).as_str(),
-            ),
-            ContextElement::text(format!("*{}*", context.word).as_str()),
+            ContextElement::text(&format!("{}{}", progress_bar, formatted_rank(context.rank))),
+            ContextElement::text(&word_element),
         ];
 
         Block {
@@ -328,9 +334,10 @@ mod tests {
             username: "username".to_string(),
             similarity: 87.12598124,
             rank: 251,
+            is_secret: false,
         };
 
-        let block = Block::guess_context("base-id", context);
+        let block = Block::guess_context("base-id", context, true);
         let json = serde_json::to_string_pretty(&block).unwrap();
         assert_eq!(
             json,
@@ -346,6 +353,80 @@ mod tests {
     {
       "type": "mrkdwn",
       "text": ":p8::p8::p8::p8::p4::p0:      251"
+    },
+    {
+      "type": "mrkdwn",
+      "text": "*word*"
+    }
+  ]
+}"#
+        );
+    }
+
+    #[test]
+    fn test_guess_context_with_secret_in_active_game() {
+        let context = GuessContext {
+            word: "word".to_string(),
+            guess_num: 3,
+            profile_photo: "photo".to_string(),
+            username: "username".to_string(),
+            similarity: 87.12598124,
+            rank: 0,
+            is_secret: true,
+        };
+        let block = Block::guess_context("base-id", context, true);
+        let json = serde_json::to_string_pretty(&block).unwrap();
+        assert_eq!(
+            json,
+            r#"{
+  "type": "context",
+  "block_id": "guess-base-id-word",
+  "elements": [
+    {
+      "type": "image",
+      "image_url": "photo",
+      "alt_text": "username"
+    },
+    {
+      "type": "mrkdwn",
+      "text": ":p8::p8::p8::p8::p8::p8:        :tada:"
+    },
+    {
+      "type": "mrkdwn",
+      "text": "*Secret will be revealed at the end* :see_no_evil:"
+    }
+  ]
+}"#
+        );
+    }
+
+    #[test]
+    fn test_guess_context_with_secret_in_inactive_game() {
+        let context = GuessContext {
+            word: "word".to_string(),
+            guess_num: 3,
+            profile_photo: "photo".to_string(),
+            username: "username".to_string(),
+            similarity: 87.12598124,
+            rank: 0,
+            is_secret: true,
+        };
+        let block = Block::guess_context("base-id", context, false);
+        let json = serde_json::to_string_pretty(&block).unwrap();
+        assert_eq!(
+            json,
+            r#"{
+  "type": "context",
+  "block_id": "guess-base-id-word",
+  "elements": [
+    {
+      "type": "image",
+      "image_url": "photo",
+      "alt_text": "username"
+    },
+    {
+      "type": "mrkdwn",
+      "text": ":p8::p8::p8::p8::p8::p8:        :tada:"
     },
     {
       "type": "mrkdwn",

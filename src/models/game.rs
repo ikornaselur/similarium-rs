@@ -22,6 +22,7 @@ pub struct GuessContext {
     pub profile_photo: String,
     pub rank: i64,
     pub similarity: f64,
+    pub is_secret: bool,
 }
 
 pub enum GuessContextOrder {
@@ -165,7 +166,8 @@ impl Game {
                 username,
                 profile_photo,
                 rank,
-                similarity
+                similarity,
+                (rank = 0) as is_secret
             FROM
                 guess g
             LEFT JOIN
