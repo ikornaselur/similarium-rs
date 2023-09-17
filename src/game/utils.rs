@@ -1,7 +1,9 @@
-use crate::game::TARGET_WORDS;
-use crate::models::{Game, GuessContextOrder};
-use crate::slack_client::Block;
-use crate::SimilariumError;
+use crate::{
+    game::TARGET_WORDS,
+    models::{Game, GuessContextOrder},
+    slack_client::Block,
+    SimilariumError,
+};
 use chrono::{DateTime, Utc};
 use rand::seq::SliceRandom;
 use rand_pcg::Pcg64;

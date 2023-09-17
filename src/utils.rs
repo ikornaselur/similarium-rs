@@ -1,7 +1,8 @@
-use crate::models::{SlackBot, User};
-use crate::slack_client::responses::UserInfoResponse;
-use crate::slack_client::SlackClient;
-use crate::SimilariumError;
+use crate::{
+    models::{SlackBot, User},
+    slack_client::{responses::UserInfoResponse, SlackClient},
+    SimilariumError,
+};
 use chrono::{NaiveTime, Timelike};
 
 pub async fn get_or_create_user(

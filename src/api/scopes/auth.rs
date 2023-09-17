@@ -1,6 +1,4 @@
-use crate::api::app::AppState;
-use crate::models::SlackBot;
-use crate::SimilariumError;
+use crate::{api::app::AppState, models::SlackBot, SimilariumError};
 use actix_web::{get, web, HttpResponse, Scope};
 use serde::Deserialize;
 

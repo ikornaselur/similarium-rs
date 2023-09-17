@@ -1,10 +1,11 @@
-use crate::api::app::AppState;
-use crate::game::submit_guess;
-use crate::game::utils::get_game_blocks;
-use crate::models::{Game, SlackBot};
-use crate::payloads::{Event, EventPayload};
-use crate::utils::get_or_create_user;
-use crate::SimilariumError;
+use crate::{
+    api::app::AppState,
+    game::{submit_guess, utils::get_game_blocks},
+    models::{Game, SlackBot},
+    payloads::{Event, EventPayload},
+    utils::get_or_create_user,
+    SimilariumError,
+};
 use actix_web::{post, web, HttpResponse, Scope};
 
 #[post("")]

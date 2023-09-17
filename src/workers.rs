@@ -1,5 +1,4 @@
-use crate::tasks;
-use crate::SimilariumError;
+use crate::{tasks, SimilariumError};
 use fang::{
     asynk::{
         async_queue::{AsyncQueue, AsyncQueueable},

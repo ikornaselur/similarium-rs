@@ -1,6 +1,10 @@
-use crate::slack_client::responses::{SlackOAuthResponse, UserInfoResponse};
-use crate::slack_client::Block;
-use crate::SimilariumError;
+use crate::{
+    slack_client::{
+        responses::{SlackOAuthResponse, UserInfoResponse},
+        Block,
+    },
+    SimilariumError,
+};
 
 const CHAT_UPDATE_URL: &str = "https://slack.com/api/chat.update";
 const OAUTH_API_URL: &str = "https://slack.com/api/oauth.v2.access";
