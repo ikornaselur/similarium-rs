@@ -1,6 +1,7 @@
 use chrono::{NaiveTime, Timelike, Utc};
 use uuid::Uuid;
 
+use crate::game::utils::get_game_blocks;
 use crate::game::utils::{get_header_body, get_header_text, get_secret};
 use crate::models::{Channel, Game, Word2Vec};
 use crate::payloads::CommandPayload;
@@ -143,8 +144,6 @@ pub async fn manual_start(
     channel_id: &str,
     token: &str,
 ) -> Result<(), SimilariumError> {
-    log::info!("Sending test blocks");
-
     // Get, or create, the channel
     let channel = match Channel::get(&payload.channel_id, db).await? {
         Some(mut channel) => {
@@ -175,7 +174,7 @@ pub async fn manual_start(
     let puzzle_number = Game::get_next_puzzle_number(channel.id.clone(), db).await;
     let header_text = get_header_text(datetime, puzzle_number);
 
-    let secret = get_secret(channel.id.clone(), puzzle_number);
+    let secret = get_secret(&channel.id, puzzle_number);
     let target_word = Word2Vec {
         word: secret.clone(),
     };
@@ -225,5 +224,44 @@ pub async fn manual_start(
     game.set_thread_ts(thread_ts, db).await?;
 
     log::info!("Successfully sent test blocks");
+    Ok(())
+}
+
+pub async fn manual_end(
+    _payload: &CommandPayload,
+    db: &sqlx::PgPool,
+    slack_client: &SlackClient,
+    channel_id: &str,
+    token: &str,
+) -> Result<(), SimilariumError> {
+    // Get all active games in the channel
+    let channel = match Channel::get(channel_id, db).await? {
+        Some(channel) => channel,
+        None => {
+            return validation_error!("Channel not found");
+        }
+    };
+
+    for mut game in channel.get_active_games(db).await? {
+        log::debug!("Ending game: {}", game.id);
+
+        // Set game to be inactive
+        game.set_active(false, db).await?;
+        if let Some(thread_ts) = &game.thread_ts {
+            // Update the game to say it's over
+            let blocks = get_game_blocks(&game, db).await?;
+
+            slack_client
+                .chat_update(
+                    "Update to today's game",
+                    &channel.id,
+                    thread_ts,
+                    token,
+                    Some(blocks),
+                )
+                .await?;
+        }
+    }
+
     Ok(())
 }

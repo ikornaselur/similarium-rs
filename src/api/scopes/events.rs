@@ -29,23 +29,72 @@ async fn post_events(
                 return validation_error!("Invalid action_id: {}", action.action_id);
             }
             let local_user = get_or_create_user(
-                &user.id.clone(),
-                &user.team_id.clone(),
+                &user.id,
+                &user.team_id,
                 &api_app_id,
                 &app_state.db,
                 &app_state.slack_client,
             )
             .await?;
+            let token =
+                SlackBot::get_slack_bot_token(&user.team_id, &api_app_id, &app_state.db).await?;
 
             let game = Game::get(channel.id.as_str(), message.ts.as_str(), &app_state.db)
                 .await?
                 .map_or_else(|| validation_error!("Game not found"), Ok)?;
 
-            submit_guess(&local_user, &game, &action.value, &app_state).await?;
+            if game.user_already_won(&user.id, &app_state.db).await? {
+                app_state
+                    .slack_client
+                    .post_ephemeral(
+                        ":warning: You already got the winning word, you can't make any further guesses :warning:",
+                        &channel.id,
+                        &user.id,
+                        &token,
+                        None,
+                    )
+                    .await?;
+                return Ok(HttpResponse::Ok().into());
+            }
 
-            let blocks = get_game_blocks(game, &app_state.db).await?;
-            let token =
-                SlackBot::get_slack_bot_token(&user.team_id, &api_app_id, &app_state.db).await?;
+            let guess = submit_guess(&local_user, &game, &action.value, &app_state).await?;
+
+            if guess.is_secret() {
+                game.add_winner(&user.id, guess.guess_num.unwrap(), &app_state.db)
+                    .await?;
+
+                // Let the user know they guessed the secret
+                app_state
+                    .slack_client
+                    .post_ephemeral(
+                        &format!(
+                            ":tada: You found the secret! It was *{}* :tada:",
+                            guess.word
+                        ),
+                        &channel.id,
+                        &user.id,
+                        &token,
+                        None,
+                    )
+                    .await?;
+
+                // Post on the channel to celebrate!
+                let celebrate_emoji = ":tada:";
+                app_state
+                    .slack_client
+                    .post_message(
+                        &format!(
+                            "{} <@{}> has just found the secret of the day! {}",
+                            celebrate_emoji, user.id, celebrate_emoji
+                        ),
+                        &channel.id,
+                        &token,
+                        None,
+                    )
+                    .await?;
+            }
+
+            let blocks = get_game_blocks(&game, &app_state.db).await?;
 
             let _ = &app_state
                 .slack_client

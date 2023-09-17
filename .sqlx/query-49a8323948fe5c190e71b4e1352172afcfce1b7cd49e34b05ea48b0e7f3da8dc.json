@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO\n                game_user_winner_association(game_id, user_id, guess_idx, created)\n            VALUES\n                ($1, $2, $3, $4);\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "49a8323948fe5c190e71b4e1352172afcfce1b7cd49e34b05ea48b0e7f3da8dc"
+}

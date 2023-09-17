@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE \n                game\n            SET \n                active = $1\n            WHERE\n                id = $2\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "bf3acddf619d902d400b90f784f1160c8c98ca30af428bcbc4689c79814ae491"
+}

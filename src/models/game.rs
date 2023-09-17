@@ -1,3 +1,4 @@
+use crate::models::GameWinnerAssociation;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -22,6 +23,7 @@ pub struct GuessContext {
     pub profile_photo: String,
     pub rank: i64,
     pub similarity: f64,
+    pub is_secret: bool,
 }
 
 pub enum GuessContextOrder {
@@ -109,6 +111,26 @@ impl Game {
         Ok(())
     }
 
+    pub async fn set_active(&mut self, active: bool, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
+        log::debug!("Setting active to {}", active);
+        self.active = active;
+        sqlx::query!(
+            r#"
+            UPDATE 
+                game
+            SET 
+                active = $1
+            WHERE
+                id = $2
+            "#,
+            self.active,
+            self.id,
+        )
+        .execute(db)
+        .await?;
+        Ok(())
+    }
+
     pub async fn set_thread_ts(
         &mut self,
         thread_ts: &str,
@@ -165,7 +187,8 @@ impl Game {
                 username,
                 profile_photo,
                 rank,
-                similarity
+                similarity,
+                (rank = 0) as is_secret
             FROM
                 guess g
             LEFT JOIN
@@ -216,6 +239,33 @@ impl Game {
         };
 
         last_puzzle_number + 1
+    }
+
+    pub async fn user_already_won(
+        &self,
+        user_id: &str,
+        db: &sqlx::PgPool,
+    ) -> Result<bool, sqlx::Error> {
+        Ok(GameWinnerAssociation::get(self.id, user_id, db)
+            .await?
+            .is_some())
+    }
+
+    pub async fn add_winner(
+        &self,
+        user_id: &str,
+        guess_idx: i64,
+        db: &sqlx::PgPool,
+    ) -> Result<(), sqlx::Error> {
+        let game_winner = GameWinnerAssociation {
+            game_id: self.id,
+            user_id: user_id.to_string(),
+            guess_idx,
+            created: chrono::Utc::now().timestamp_millis(),
+        };
+        game_winner.insert(db).await?;
+
+        Ok(())
     }
 }
 

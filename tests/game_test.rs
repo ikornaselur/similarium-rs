@@ -9,20 +9,20 @@ fn test_adding_guess_to_game(pool: sqlx::PgPool) -> sqlx::Result<()> {
     let guess_count = game.get_guess_count(&pool).await?;
     assert_eq!(guess_count, 0);
 
-    let guess = "apple".to_string();
+    let guess = "apple";
     let secret = Word2Vec {
         word: game.secret.clone(),
     };
     secret.create_materialised_view(&pool).await?;
 
-    let similarity = secret.get_similarity(&guess, &pool).await?;
+    let similarity = secret.get_similarity(guess, &pool).await?;
 
     let guess = Guess {
         id: Uuid::new_v4(),
         game_id,
         updated: 0,
         user_id: "user_id".to_string(),
-        word: guess,
+        word: guess.to_string(),
         rank: similarity.rank,
         similarity: similarity.similarity,
         guess_num: None,

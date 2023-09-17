@@ -8,7 +8,7 @@ pub async fn submit_guess(
     game: &Game,
     guess: &str,
     app_state: &AppState,
-) -> Result<(), SimilariumError> {
+) -> Result<Guess, SimilariumError> {
     // Get the similarity for the guess
     let secret = Word2Vec {
         word: game.secret.clone(),
@@ -21,7 +21,7 @@ pub async fn submit_guess(
             .update_latest_guess_user_id(&user.id, &app_state.db)
             .await?;
 
-        return Ok(());
+        return Ok(guess);
     }
 
     let guess = Guess {
@@ -37,7 +37,5 @@ pub async fn submit_guess(
     };
     guess.insert(&app_state.db).await?;
 
-    log::debug!("Similarity: {:?}", similarity);
-
-    Ok(())
+    Ok(guess)
 }

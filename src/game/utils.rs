@@ -19,7 +19,10 @@ pub fn get_header_body(guesses: i64) -> String {
 }
 
 /// Generate the blocks for a game
-pub async fn get_game_blocks(game: Game, db: &sqlx::PgPool) -> Result<Vec<Block>, SimilariumError> {
+pub async fn get_game_blocks(
+    game: &Game,
+    db: &sqlx::PgPool,
+) -> Result<Vec<Block>, SimilariumError> {
     let header_body = get_header_body(game.get_guess_count(db).await?);
 
     let header = get_header_text(game.date, game.puzzle_number);
@@ -39,7 +42,7 @@ pub async fn get_game_blocks(game: Game, db: &sqlx::PgPool) -> Result<Vec<Block>
         blocks.extend(
             game_guesses
                 .into_iter()
-                .map(|guess| Block::guess_context("latest", guess)),
+                .map(|guess| Block::guess_context("latest", guess, game.active)),
         );
     }
 
@@ -51,7 +54,7 @@ pub async fn get_game_blocks(game: Game, db: &sqlx::PgPool) -> Result<Vec<Block>
     blocks.extend(
         game_guesses
             .into_iter()
-            .map(|guess| Block::guess_context("top", guess)),
+            .map(|guess| Block::guess_context("top", guess, game.active)),
     );
 
     // Show input
@@ -95,7 +98,7 @@ pub fn get_help_blocks() -> Vec<Block> {
 ///
 /// The channel_id is used as a random seed, then the puzzle number is used to pick the randomly
 /// sorted target words list.
-pub fn get_secret(seed: String, puzzle_number: i64) -> String {
+pub fn get_secret(seed: &str, puzzle_number: i64) -> String {
     let mut rng: Pcg64 = Seeder::from(seed).make_rng();
 
     // Get a copy of the target words
@@ -129,21 +132,21 @@ mod tests {
 
     #[test]
     fn test_get_secret_is_consistent() {
-        let seed = "foobar".to_string();
+        let seed = "foobar";
 
-        let secret1 = get_secret(seed.clone(), 0);
-        let secret2 = get_secret(seed.clone(), 0);
+        let secret1 = get_secret(seed, 0);
+        let secret2 = get_secret(seed, 0);
 
         assert_eq!(secret1, secret2);
     }
 
     #[test]
     fn test_get_secret_gives_different_values_for_different_seeds() {
-        let seed1 = "foobar".to_string();
-        let seed2 = "bazqux".to_string();
+        let seed1 = "foobar";
+        let seed2 = "bazqux";
 
-        let secret1 = get_secret(seed1.clone(), 0);
-        let secret2 = get_secret(seed2.clone(), 0);
+        let secret1 = get_secret(seed1, 0);
+        let secret2 = get_secret(seed2, 0);
 
         assert_ne!(secret1, secret2);
     }
@@ -151,10 +154,10 @@ mod tests {
     #[test]
     fn test_get_secret_wraps_around() {
         let total_target_words = TARGET_WORDS.len();
-        let seed = "foobar".to_string();
+        let seed = "foobar";
 
-        let secret1 = get_secret(seed.clone(), 0);
-        let secret2 = get_secret(seed.clone(), total_target_words as i64);
+        let secret1 = get_secret(seed, 0);
+        let secret2 = get_secret(seed, total_target_words as i64);
 
         assert_eq!(secret1, secret2);
     }
