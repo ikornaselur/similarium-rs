@@ -8,6 +8,7 @@ mod game;
 pub mod models;
 mod payloads;
 mod slack_client;
+mod spelling;
 mod tasks;
 pub mod utils;
 pub mod workers;
