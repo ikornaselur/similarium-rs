@@ -110,7 +110,7 @@ impl Guess {
                 updated = $1,
                 latest_guess_user_id = $2
             WHERE
-                id = $3;
+                id = $3
             "#,
             self.updated,
             self.latest_guess_user_id,

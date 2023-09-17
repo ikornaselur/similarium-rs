@@ -19,7 +19,10 @@ pub fn get_header_body(guesses: i64) -> String {
 }
 
 /// Generate the blocks for a game
-pub async fn get_game_blocks(game: Game, db: &sqlx::PgPool) -> Result<Vec<Block>, SimilariumError> {
+pub async fn get_game_blocks(
+    game: &Game,
+    db: &sqlx::PgPool,
+) -> Result<Vec<Block>, SimilariumError> {
     let header_body = get_header_body(game.get_guess_count(db).await?);
 
     let header = get_header_text(game.date, game.puzzle_number);

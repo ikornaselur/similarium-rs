@@ -60,7 +60,8 @@ async fn post_events(
             let guess = submit_guess(&local_user, &game, &action.value, &app_state).await?;
 
             if guess.is_secret() {
-                game.add_winner(&user.id, guess.guess_num.unwrap(), &app_state.db).await?;
+                game.add_winner(&user.id, guess.guess_num.unwrap(), &app_state.db)
+                    .await?;
 
                 // Let the user know they guessed the secret
                 app_state
@@ -93,9 +94,7 @@ async fn post_events(
                     .await?;
             }
 
-            let blocks = get_game_blocks(game, &app_state.db).await?;
-            let token =
-                SlackBot::get_slack_bot_token(&user.team_id, &api_app_id, &app_state.db).await?;
+            let blocks = get_game_blocks(&game, &app_state.db).await?;
 
             let _ = &app_state
                 .slack_client

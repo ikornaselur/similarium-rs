@@ -3,7 +3,7 @@ use actix_web::{post, web, HttpResponse, Scope};
 use crate::api::app::AppState;
 use crate::api::utils::{parse_command, Command};
 use crate::game::utils::get_help_blocks;
-use crate::game::{manual_start, start_game, stop_game};
+use crate::game::{manual_end, manual_start, start_game, stop_game};
 use crate::models::SlackBot;
 use crate::payloads::CommandPayload;
 use crate::SimilariumError;
@@ -97,7 +97,16 @@ async fn post_similarium_command(
             )
             .await?
         }
-        Command::ManualEnd => todo!(),
+        Command::ManualEnd => {
+            manual_end(
+                &payload,
+                &app_state.db,
+                &app_state.slack_client,
+                &payload.channel_id,
+                &token,
+            )
+            .await?
+        }
         Command::Debug => todo!(),
     }
 

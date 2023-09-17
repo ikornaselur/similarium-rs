@@ -1,3 +1,4 @@
+use crate::models::Game;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
@@ -17,7 +18,7 @@ impl Channel {
             SELECT * FROM
                 channel 
             WHERE
-                id = $1;
+                id = $1
             "#,
             channel_id
         )
@@ -66,7 +67,7 @@ impl Channel {
                 hour = $2,
                 minute = $3
             WHERE
-                id = $4;
+                id = $4
             "#,
             self.active,
             self.hour,
@@ -77,5 +78,27 @@ impl Channel {
         .await?;
 
         Ok(())
+    }
+
+    pub async fn get_active_games(&self, db: &sqlx::PgPool) -> Result<Vec<Game>, sqlx::Error> {
+        log::debug!("Fetching active games for channel: {}", self.id);
+
+        let games = sqlx::query_as!(
+            Game,
+            r#"
+            SELECT 
+                *
+            FROM
+                game
+            WHERE
+                channel_id = $1 AND
+                active = true
+            "#,
+            self.id
+        )
+        .fetch_all(db)
+        .await?;
+
+        Ok(games)
     }
 }

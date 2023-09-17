@@ -111,6 +111,26 @@ impl Game {
         Ok(())
     }
 
+    pub async fn set_active(&mut self, active: bool, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
+        log::debug!("Setting active to {}", active);
+        self.active = active;
+        sqlx::query!(
+            r#"
+            UPDATE 
+                game
+            SET 
+                active = $1
+            WHERE
+                id = $2
+            "#,
+            self.active,
+            self.id,
+        )
+        .execute(db)
+        .await?;
+        Ok(())
+    }
+
     pub async fn set_thread_ts(
         &mut self,
         thread_ts: &str,
