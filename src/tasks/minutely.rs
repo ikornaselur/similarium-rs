@@ -1,3 +1,11 @@
+use crate::{
+    db::get_pool,
+    game::{end_games_on_channel, start_game_on_channel},
+    models::Channel,
+    models::SlackBot,
+    slack_client::SlackClient,
+};
+use chrono::Timelike;
 use fang::{
     async_trait,
     asynk::async_queue::AsyncQueueable,
@@ -12,8 +20,36 @@ pub struct GameTask;
 #[typetag::serde]
 #[async_trait]
 impl AsyncRunnable for GameTask {
-    async fn run(&self, _queueable: &mut dyn AsyncQueueable) -> Result<(), FangError> {
+    async fn run(&self, _queue: &mut dyn AsyncQueueable) -> Result<(), FangError> {
         log::debug!("Running GameTask");
+        let pool = get_pool();
+        let now = chrono::Utc::now();
+
+        let channels = Channel::get_channels_for_hour_minute(
+            now.time().hour() as i32,
+            now.time().minute() as i32,
+            pool,
+        )
+        .await?;
+        if channels.is_empty() {
+            return Ok(());
+        }
+
+        let slack_client = SlackClient::new();
+
+        // TODO: Shift each of these into a separate task? Should be better for error handling as
+        // well and not blocking this task that runs every minute
+        for channel in channels {
+            // Check if there are any active games on the channel, and end them
+            let token = SlackBot::get_slack_bot_token(&channel.team_id, pool)
+                .await
+                .unwrap();
+            end_games_on_channel(pool, &slack_client, &channel.id, &token).await?;
+
+            // Start a new game on the channel
+            start_game_on_channel(pool, &slack_client, &channel.id, &token).await?;
+        }
+
         Ok(())
     }
 

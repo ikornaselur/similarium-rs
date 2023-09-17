@@ -1,6 +1,8 @@
 #[macro_use]
 mod macros;
 pub mod api;
+mod config;
+mod db;
 mod error;
 mod game;
 pub mod models;

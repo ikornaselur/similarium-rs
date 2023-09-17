@@ -5,7 +5,10 @@ use crate::{
         app::AppState,
         utils::{parse_command, Command},
     },
-    game::{manual_end, manual_start, start_game, stop_game, utils::get_help_blocks},
+    game::{
+        end_games_on_channel, manual_start, schedule_game_on_channel, stop_games_on_channel,
+        utils::get_help_blocks,
+    },
     models::SlackBot,
     payloads::CommandPayload,
     SimilariumError,
@@ -17,8 +20,7 @@ async fn post_similarium_command(
     app_state: web::Data<AppState>,
 ) -> Result<HttpResponse, SimilariumError> {
     let payload = form.into_inner();
-    let token =
-        SlackBot::get_slack_bot_token(&payload.team_id, &payload.api_app_id, &app_state.db).await?;
+    let token = SlackBot::get_slack_bot_token(&payload.team_id, &app_state.db).await?;
     let command = match parse_command(&payload.text) {
         Ok(command) => command,
         Err(e) => {
@@ -50,7 +52,7 @@ async fn post_similarium_command(
                 )
                 .await?;
         }
-        Command::Start(time) => match start_game(
+        Command::Start(time) => match schedule_game_on_channel(
             &app_state.db,
             &app_state.slack_client,
             &payload,
@@ -74,7 +76,9 @@ async fn post_similarium_command(
             }
         },
         Command::Stop => {
-            match stop_game(&app_state.db, &app_state.slack_client, &payload, &token).await {
+            match stop_games_on_channel(&app_state.db, &app_state.slack_client, &payload, &token)
+                .await
+            {
                 Ok(_) => {}
                 Err(e) => {
                     app_state
@@ -101,8 +105,7 @@ async fn post_similarium_command(
             .await?
         }
         Command::ManualEnd => {
-            manual_end(
-                &payload,
+            end_games_on_channel(
                 &app_state.db,
                 &app_state.slack_client,
                 &payload.channel_id,

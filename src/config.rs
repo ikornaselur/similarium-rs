@@ -1,5 +1,6 @@
 use crate::SimilariumError;
 use std::env;
+use std::sync::OnceLock;
 
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -16,6 +17,8 @@ const DEFAULT_PORT: u16 = 8080;
 const DEFAULT_HOST: &str = "127.0.0.1";
 const DEFAULT_WORKER_COUNT: u32 = 3;
 const DEFAULT_MAX_POOL_SIZE: u32 = 3;
+
+static CONFIG: OnceLock<Config> = OnceLock::new();
 
 impl Config {
     pub fn init_from_env() -> Result<Self, SimilariumError> {
@@ -44,4 +47,8 @@ impl Config {
             worker_max_pool_size,
         })
     }
+}
+
+pub fn get_config() -> &'static Config {
+    CONFIG.get_or_init(|| Config::init_from_env().expect("Failed to initialize config"))
 }

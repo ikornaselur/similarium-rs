@@ -1,4 +1,5 @@
 use crate::models::GameWinnerAssociation;
+use crate::SimilariumError;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -36,7 +37,7 @@ impl Game {
         channel_id: &str,
         thread_ts: &str,
         db: &sqlx::PgPool,
-    ) -> Result<Option<Game>, sqlx::Error> {
+    ) -> Result<Option<Game>, SimilariumError> {
         log::debug!(
             "Fetching game for channel: {} and thread_ts: {}",
             channel_id,
@@ -61,7 +62,7 @@ impl Game {
         Ok(game)
     }
 
-    pub async fn get_by_id(id: Uuid, db: &sqlx::PgPool) -> Result<Option<Game>, sqlx::Error> {
+    pub async fn get_by_id(id: Uuid, db: &sqlx::PgPool) -> Result<Option<Game>, SimilariumError> {
         log::debug!("Fetching game for id: {}", id);
         let game = sqlx::query_as!(
             Game,
@@ -80,7 +81,7 @@ impl Game {
         Ok(game)
     }
 
-    pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
+    pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), SimilariumError> {
         sqlx::query!(
             r#"
             INSERT INTO 
@@ -111,8 +112,12 @@ impl Game {
         Ok(())
     }
 
-    pub async fn set_active(&mut self, active: bool, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
-        log::debug!("Setting active to {}", active);
+    pub async fn set_active(
+        &mut self,
+        active: bool,
+        db: &sqlx::PgPool,
+    ) -> Result<(), SimilariumError> {
+        log::debug!("[Game: {}] Setting active to {}", self.id, active);
         self.active = active;
         sqlx::query!(
             r#"
@@ -135,8 +140,8 @@ impl Game {
         &mut self,
         thread_ts: &str,
         db: &sqlx::PgPool,
-    ) -> Result<(), sqlx::Error> {
-        log::debug!("Setting thread_ts to {}", thread_ts);
+    ) -> Result<(), SimilariumError> {
+        log::debug!("[Game: {}] Setting thread_ts to {}", self.id, thread_ts);
         self.thread_ts = Some(thread_ts.to_string());
         sqlx::query!(
             r#"
@@ -155,7 +160,7 @@ impl Game {
         Ok(())
     }
 
-    pub async fn get_guess_count(&self, db: &sqlx::PgPool) -> Result<i64, sqlx::Error> {
+    pub async fn get_guess_count(&self, db: &sqlx::PgPool) -> Result<i64, SimilariumError> {
         sqlx::query!(
             r#"
             SELECT
@@ -178,7 +183,7 @@ impl Game {
         order: GuessContextOrder,
         count: i64,
         db: &sqlx::PgPool,
-    ) -> Result<Vec<GuessContext>, sqlx::Error> {
+    ) -> Result<Vec<GuessContext>, SimilariumError> {
         let q = format!(
             r#"
             SELECT
@@ -245,7 +250,7 @@ impl Game {
         &self,
         user_id: &str,
         db: &sqlx::PgPool,
-    ) -> Result<bool, sqlx::Error> {
+    ) -> Result<bool, SimilariumError> {
         Ok(GameWinnerAssociation::get(self.id, user_id, db)
             .await?
             .is_some())
@@ -256,7 +261,7 @@ impl Game {
         user_id: &str,
         guess_idx: i64,
         db: &sqlx::PgPool,
-    ) -> Result<(), sqlx::Error> {
+    ) -> Result<(), SimilariumError> {
         let game_winner = GameWinnerAssociation {
             game_id: self.id,
             user_id: user_id.to_string(),
@@ -277,7 +282,7 @@ mod test {
     #[sqlx::test]
     async fn test_get_next_puzzle_number_with_no_games_is_1(
         pool: sqlx::PgPool,
-    ) -> sqlx::Result<()> {
+    ) -> Result<(), SimilariumError> {
         let channel_id = "channel_id".to_string();
 
         let next_puzzle_number = Game::get_next_puzzle_number(channel_id, &pool).await;
@@ -290,7 +295,7 @@ mod test {
     #[sqlx::test]
     async fn test_get_next_puzzle_number_increments_last_highest(
         pool: sqlx::PgPool,
-    ) -> sqlx::Result<()> {
+    ) -> Result<(), SimilariumError> {
         // Insert a channel for the game
         let channel_id = "channel_id".to_string();
         let channel = Channel {

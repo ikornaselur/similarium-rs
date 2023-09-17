@@ -8,7 +8,6 @@ use chrono::{NaiveTime, Timelike};
 pub async fn get_or_create_user(
     user_id: &str,
     team_id: &str,
-    api_app_id: &str,
     db: &sqlx::PgPool,
     slack_client: &SlackClient,
 ) -> Result<User, SimilariumError> {
@@ -18,7 +17,7 @@ pub async fn get_or_create_user(
             log::debug!("Creating user");
 
             // Fetch the user details from Slack
-            let token = SlackBot::get_slack_bot_token(team_id, api_app_id, db).await?;
+            let token = SlackBot::get_slack_bot_token(team_id, db).await?;
             let response = &slack_client.get_user_details(user_id, &token).await?;
 
             let user_details = match response {

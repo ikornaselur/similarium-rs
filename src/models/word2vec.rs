@@ -1,3 +1,4 @@
+use crate::SimilariumError;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
@@ -19,7 +20,7 @@ impl Word2Vec {
     /// rank of the similarity
     /// This is used to optimise the lookup of the rank and similarity for a given word during the
     /// game day.
-    pub async fn create_materialised_view(&self, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
+    pub async fn create_materialised_view(&self, db: &sqlx::PgPool) -> Result<(), SimilariumError> {
         sqlx::query(
             format!(
                 r#"DROP MATERIALIZED VIEW IF EXISTS word2vec_{0}"#,
@@ -82,7 +83,7 @@ impl Word2Vec {
         &self,
         word: &str,
         db: &sqlx::PgPool,
-    ) -> Result<Similarity, sqlx::Error> {
+    ) -> Result<Similarity, SimilariumError> {
         let q = format!(
             r#"
             SELECT

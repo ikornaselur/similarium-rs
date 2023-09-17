@@ -10,7 +10,7 @@ use crate::{
     SimilariumError, SimilariumErrorType,
 };
 
-pub async fn start_game(
+pub async fn schedule_game_on_channel(
     db: &sqlx::PgPool,
     slack_client: &SlackClient,
     payload: &CommandPayload,
@@ -102,7 +102,7 @@ pub async fn start_game(
     Ok(())
 }
 
-pub async fn stop_game(
+pub async fn stop_games_on_channel(
     db: &sqlx::PgPool,
     slack_client: &SlackClient,
     payload: &CommandPayload,
@@ -223,12 +223,83 @@ pub async fn manual_start(
 
     game.set_thread_ts(thread_ts, db).await?;
 
-    log::info!("Successfully sent test blocks");
     Ok(())
 }
 
-pub async fn manual_end(
-    _payload: &CommandPayload,
+pub async fn start_game_on_channel(
+    db: &sqlx::PgPool,
+    slack_client: &SlackClient,
+    channel_id: &str,
+    token: &str,
+) -> Result<(), SimilariumError> {
+    let channel = match Channel::get(channel_id, db).await? {
+        Some(channel) => channel,
+        None => {
+            log::error!(
+                "Unable to start game on channel ({}): channel not found",
+                channel_id
+            );
+            return validation_error!("Channel not found");
+        }
+    };
+
+    let datetime = Utc::now();
+    let puzzle_number = Game::get_next_puzzle_number(channel.id.clone(), db).await;
+    let header_text = get_header_text(datetime, puzzle_number);
+
+    let secret = get_secret(&channel.id, puzzle_number);
+    let target_word = Word2Vec {
+        word: secret.clone(),
+    };
+    target_word.create_materialised_view(db).await?;
+
+    log::debug!("Setting up the game");
+    let mut game = Game {
+        id: Uuid::new_v4(),
+        channel_id: channel.id.clone(),
+        thread_ts: None,
+        puzzle_number,
+        date: datetime,
+        active: true,
+        hint: None,
+        secret: target_word.word.clone(),
+    };
+    game.insert(db).await?;
+
+    log::debug!("Setting up the message");
+    let header_body = get_header_body(game.get_guess_count(db).await?);
+
+    let blocks: Vec<Block> = vec![
+        Block::header(&header_text),
+        Block::section(&header_body, None),
+        Block::divider(),
+        Block::guess_input(),
+    ];
+
+    log::debug!("Submitting the message");
+    let res = slack_client
+        .post_message("Manual start", channel_id, token, Some(blocks))
+        .await?;
+
+    // Get the thread_ts and update the game
+    let thread_ts = res
+        .get("ts")
+        .ok_or(SimilariumError {
+            message: Some("Could not get thread_ts from Slack response".to_string()),
+            error_type: SimilariumErrorType::MissingThreadTs,
+        })?
+        .as_str()
+        .ok_or(SimilariumError {
+            message: Some("Could not get thread_ts from Slack response".to_string()),
+            error_type: SimilariumErrorType::MissingThreadTs,
+        })?;
+
+    game.set_thread_ts(thread_ts, db).await?;
+
+    Ok(())
+}
+
+pub async fn end_games_on_channel(
     db: &sqlx::PgPool,
     slack_client: &SlackClient,
     channel_id: &str,

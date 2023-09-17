@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT * FROM\n                channel \n            WHERE\n                id = $1\n            ",
+  "query": "\n            SELECT\n                *\n            FROM\n                channel\n            WHERE\n                hour = $1 AND\n                minute = $2 AND\n                active = true\n            ",
   "describe": {
     "columns": [
       {
@@ -31,7 +31,8 @@
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Int4",
+        "Int4"
       ]
     },
     "nullable": [
@@ -42,5 +43,5 @@
       false
     ]
   },
-  "hash": "76f1efef303105bd7ae542a43dd47b5edfbee14b1fac0764a0ae876f741a30f1"
+  "hash": "c2514c6ab47eeae0a093b1b2d32d542c6874fa94f80386353f1456887ccd0ffc"
 }

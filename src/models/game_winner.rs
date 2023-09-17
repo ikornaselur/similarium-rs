@@ -1,3 +1,4 @@
+use crate::SimilariumError;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -14,7 +15,7 @@ impl GameWinnerAssociation {
         game_id: Uuid,
         user_id: &str,
         db: &sqlx::PgPool,
-    ) -> Result<Option<GameWinnerAssociation>, sqlx::Error> {
+    ) -> Result<Option<GameWinnerAssociation>, SimilariumError> {
         let association = sqlx::query_as!(
             GameWinnerAssociation,
             r#"
@@ -35,7 +36,7 @@ impl GameWinnerAssociation {
         Ok(association)
     }
 
-    pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
+    pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), SimilariumError> {
         sqlx::query!(
             r#"
             INSERT INTO
