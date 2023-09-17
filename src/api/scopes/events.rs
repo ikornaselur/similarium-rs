@@ -41,7 +41,43 @@ async fn post_events(
                 .await?
                 .map_or_else(|| validation_error!("Game not found"), Ok)?;
 
-            submit_guess(&local_user, &game, &action.value, &app_state).await?;
+            let guess = submit_guess(&local_user, &game, &action.value, &app_state).await?;
+
+            // TODO: prevent guesses after getting the secret
+            if guess.is_secret() {
+                let token =
+                    SlackBot::get_slack_bot_token(&user.team_id, &api_app_id, &app_state.db)
+                        .await?;
+                // Let the user know they guessed the secret
+                app_state
+                    .slack_client
+                    .post_ephemeral(
+                        &format!(
+                            ":tada: You found the secret! It was *{}* :tada:",
+                            guess.word
+                        ),
+                        &channel.id,
+                        &user.id,
+                        &token,
+                        None,
+                    )
+                    .await?;
+
+                // Post on the channel to celebrate!
+                let celebrate_emoji = ":tada:";
+                app_state
+                    .slack_client
+                    .post_message(
+                        &format!(
+                            "{} <@{}> has just found the secret of the day! {}",
+                            celebrate_emoji, user.id, celebrate_emoji
+                        ),
+                        &channel.id,
+                        &token,
+                        None,
+                    )
+                    .await?;
+            }
 
             let blocks = get_game_blocks(game, &app_state.db).await?;
             let token =

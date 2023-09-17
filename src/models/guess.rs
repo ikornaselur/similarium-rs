@@ -121,4 +121,8 @@ impl Guess {
 
         Ok(())
     }
+
+    pub fn is_secret(&self) -> bool {
+        self.rank == 0
+    }
 }
