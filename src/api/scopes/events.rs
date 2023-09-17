@@ -29,8 +29,8 @@ async fn post_events(
                 return validation_error!("Invalid action_id: {}", action.action_id);
             }
             let local_user = get_or_create_user(
-                &user.id.clone(),
-                &user.team_id.clone(),
+                &user.id,
+                &user.team_id,
                 &api_app_id,
                 &app_state.db,
                 &app_state.slack_client,

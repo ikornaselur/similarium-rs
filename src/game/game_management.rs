@@ -175,7 +175,7 @@ pub async fn manual_start(
     let puzzle_number = Game::get_next_puzzle_number(channel.id.clone(), db).await;
     let header_text = get_header_text(datetime, puzzle_number);
 
-    let secret = get_secret(channel.id.clone(), puzzle_number);
+    let secret = get_secret(&channel.id, puzzle_number);
     let target_word = Word2Vec {
         word: secret.clone(),
     };
