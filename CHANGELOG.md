@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/ikornaselur/similarium-rs/compare/v0.4.2...v0.4.3) (2023-09-17)
+
+
+### Miscellaneous
+
+* **actions:** Change trigger for publish to be just on actual tags ([1ee0ad1](https://github.com/ikornaselur/similarium-rs/commit/1ee0ad1e4e5283dabeda5e4860059e328d6ed17e))
+
 ## [0.4.2](https://github.com/ikornaselur/similarium-rs/compare/v0.4.1...v0.4.2) (2023-09-17)
 
 
