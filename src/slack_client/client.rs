@@ -13,13 +13,13 @@ const USER_DETAILS_URL: &str = "https://slack.com/api/users.info";
 const POST_EPHEMERAL_URL: &str = "https://slack.com/api/chat.postEphemeral";
 
 pub struct SlackClient {
-    client: awc::Client,
+    client: reqwest::Client,
 }
 
 impl SlackClient {
     pub fn new() -> Self {
         Self {
-            client: awc::Client::default(),
+            client: reqwest::Client::new(),
         }
     }
 
@@ -30,20 +30,22 @@ impl SlackClient {
         token: &str,
         blocks: Option<Vec<Block>>,
     ) -> Result<serde_json::Value, SimilariumError> {
-        let mut res = if let Some(blocks) = blocks {
+        let res = if let Some(blocks) = blocks {
             self.client
                 .post(POST_MESSAGE_URL)
-                .send_form(&[
+                .form(&[
                     ("token", token),
                     ("channel", channel_id),
                     ("text", text),
                     ("blocks", &serde_json::to_string(&blocks).unwrap()),
                 ])
+                .send()
                 .await?
         } else {
             self.client
                 .post(POST_MESSAGE_URL)
-                .send_form(&[("token", token), ("channel", channel_id), ("text", text)])
+                .form(&[("token", token), ("channel", channel_id), ("text", text)])
+                .send()
                 .await?
         };
 
@@ -70,26 +72,28 @@ impl SlackClient {
         token: &str,
         blocks: Option<Vec<Block>>,
     ) -> Result<serde_json::Value, SimilariumError> {
-        let mut res = if let Some(blocks) = blocks {
+        let res = if let Some(blocks) = blocks {
             self.client
                 .post(POST_EPHEMERAL_URL)
-                .send_form(&[
+                .form(&[
                     ("token", token),
                     ("channel", channel_id),
                     ("text", text),
                     ("user", user_id),
                     ("blocks", &serde_json::to_string(&blocks).unwrap()),
                 ])
+                .send()
                 .await?
         } else {
             self.client
                 .post(POST_EPHEMERAL_URL)
-                .send_form(&[
+                .form(&[
                     ("token", token),
                     ("channel", channel_id),
                     ("text", text),
                     ("user", user_id),
                 ])
+                .send()
                 .await?
         };
 
@@ -114,14 +118,15 @@ impl SlackClient {
         client_id: &str,
         client_secret: &str,
     ) -> Result<SlackOAuthResponse, SimilariumError> {
-        let mut res = self
+        let res = self
             .client
             .post(OAUTH_API_URL)
-            .send_form(&[
+            .form(&[
                 ("code", code),
                 ("client_id", client_id),
                 ("client_secret", client_secret),
             ])
+            .send()
             .await?;
 
         Ok(res.json::<SlackOAuthResponse>().await?)
@@ -132,10 +137,10 @@ impl SlackClient {
         user_id: &str,
         token: &str,
     ) -> Result<UserInfoResponse, SimilariumError> {
-        let mut res = self
+        let res = self
             .client
             .get(USER_DETAILS_URL)
-            .query(&[("user", user_id)])?
+            .query(&[("user", user_id)])
             .bearer_auth(token)
             .send()
             .await?;
@@ -151,26 +156,28 @@ impl SlackClient {
         token: &str,
         blocks: Option<Vec<Block>>,
     ) -> Result<serde_json::Value, SimilariumError> {
-        let mut res = if let Some(blocks) = blocks {
+        let res = if let Some(blocks) = blocks {
             self.client
                 .post(CHAT_UPDATE_URL)
-                .send_form(&[
+                .form(&[
                     ("token", token),
                     ("channel", channel_id),
                     ("ts", message_ts),
                     ("text", text),
                     ("blocks", &serde_json::to_string(&blocks).unwrap()),
                 ])
+                .send()
                 .await?
         } else {
             self.client
                 .post(POST_MESSAGE_URL)
-                .send_form(&[
+                .form(&[
                     ("token", token),
                     ("channel", channel_id),
                     ("ts", message_ts),
                     ("text", text),
                 ])
+                .send()
                 .await?
         };
 
