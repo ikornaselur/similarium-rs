@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/ikornaselur/similarium-rs/compare/v0.4.1...v0.4.2) (2023-09-17)
+
+
+### Miscellaneous
+
+* **actions:** Set checkout in publish-docker to fetch tags ([b4aad97](https://github.com/ikornaselur/similarium-rs/commit/b4aad97734e199935e3e0ca94fe9860c5e1bcf40))
+
 ## [0.4.1](https://github.com/ikornaselur/similarium-rs/compare/v0.4.0...v0.4.1) (2023-09-17)
 
 
