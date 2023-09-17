@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/ikornaselur/similarium-rs/compare/v0.4.0...v0.4.1) (2023-09-17)
+
+
+### Bug Fixes
+
+* use vendored openssl for reqwest ([#70](https://github.com/ikornaselur/similarium-rs/issues/70)) ([75b1c92](https://github.com/ikornaselur/similarium-rs/commit/75b1c92a344f27303858fe9bd6ed3e42e51b27ad))
+
 ## [0.4.0](https://github.com/ikornaselur/similarium-rs/compare/v0.3.0...v0.4.0) (2023-09-17)
 
 
