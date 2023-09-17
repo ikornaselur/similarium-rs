@@ -1,5 +1,7 @@
-use crate::models::GuessContext;
-use crate::slack_client::utils::{formatted_rank, get_progress_bar};
+use crate::{
+    models::GuessContext,
+    slack_client::utils::{formatted_rank, get_progress_bar},
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]

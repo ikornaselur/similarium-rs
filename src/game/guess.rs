@@ -1,6 +1,8 @@
-use crate::api::AppState;
-use crate::models::{Game, Guess, User, Word2Vec};
-use crate::SimilariumError;
+use crate::{
+    api::AppState,
+    models::{Game, Guess, User, Word2Vec},
+    SimilariumError,
+};
 use uuid::Uuid;
 
 pub async fn submit_guess(

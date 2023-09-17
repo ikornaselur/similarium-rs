@@ -1,15 +1,15 @@
-use actix_web::middleware::Logger;
-use actix_web::{error, web, App, HttpRequest, HttpResponse, HttpServer};
+use actix_web::{error, middleware::Logger, web, App, HttpRequest, HttpResponse, HttpServer};
 use fang::{asynk::async_queue::AsyncQueue, NoTls};
 use sqlx::postgres::PgPoolOptions;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-use crate::api::config::Config;
-use crate::api::scopes;
-use crate::slack_client::SlackClient;
-use crate::workers::{ensure_recurring_tasks, start_workers};
-use crate::SimilariumError;
+use crate::{
+    api::{config::Config, scopes},
+    slack_client::SlackClient,
+    workers::{ensure_recurring_tasks, start_workers},
+    SimilariumError,
+};
 
 async fn not_found(request: HttpRequest, text: String) -> HttpResponse {
     log::error!("404: {} {}", request.method(), request.path());

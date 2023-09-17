@@ -1,14 +1,14 @@
 use chrono::{NaiveTime, Timelike, Utc};
 use uuid::Uuid;
 
-use crate::game::utils::get_game_blocks;
-use crate::game::utils::{get_header_body, get_header_text, get_secret};
-use crate::models::{Channel, Game, Word2Vec};
-use crate::payloads::CommandPayload;
-use crate::slack_client::responses::UserInfoResponse;
-use crate::slack_client::{Block, SlackClient};
-use crate::utils::{get_utc_naive_time, when_human};
-use crate::{SimilariumError, SimilariumErrorType};
+use crate::{
+    game::utils::{get_game_blocks, get_header_body, get_header_text, get_secret},
+    models::{Channel, Game, Word2Vec},
+    payloads::CommandPayload,
+    slack_client::{responses::UserInfoResponse, Block, SlackClient},
+    utils::{get_utc_naive_time, when_human},
+    SimilariumError, SimilariumErrorType,
+};
 
 pub async fn start_game(
     db: &sqlx::PgPool,

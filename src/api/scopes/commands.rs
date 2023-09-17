@@ -1,12 +1,15 @@
 use actix_web::{post, web, HttpResponse, Scope};
 
-use crate::api::app::AppState;
-use crate::api::utils::{parse_command, Command};
-use crate::game::utils::get_help_blocks;
-use crate::game::{manual_end, manual_start, start_game, stop_game};
-use crate::models::SlackBot;
-use crate::payloads::CommandPayload;
-use crate::SimilariumError;
+use crate::{
+    api::{
+        app::AppState,
+        utils::{parse_command, Command},
+    },
+    game::{manual_end, manual_start, start_game, stop_game, utils::get_help_blocks},
+    models::SlackBot,
+    payloads::CommandPayload,
+    SimilariumError,
+};
 
 #[post("/similarium")]
 async fn post_similarium_command(
