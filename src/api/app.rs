@@ -1,15 +1,15 @@
-use actix_web::{error, middleware::Logger, web, App, HttpRequest, HttpResponse, HttpServer};
-use fang::{asynk::async_queue::AsyncQueue, NoTls};
-use sqlx::postgres::PgPoolOptions;
-use std::sync::Arc;
-use tokio::sync::Mutex;
-
 use crate::{
-    api::{config::Config, scopes},
+    api::scopes,
+    config::{get_config, Config},
+    db::get_pool,
     slack_client::SlackClient,
     workers::{ensure_recurring_tasks, start_workers},
     SimilariumError,
 };
+use actix_web::{error, middleware::Logger, web, App, HttpRequest, HttpResponse, HttpServer};
+use fang::{asynk::async_queue::AsyncQueue, NoTls};
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 async fn not_found(request: HttpRequest, text: String) -> HttpResponse {
     log::error!("404: {} {}", request.method(), request.path());
@@ -28,14 +28,11 @@ pub struct AppState {
 
 pub async fn run() -> Result<(), SimilariumError> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
-    let config = Config::init_from_env()?;
+    let config = get_config();
 
     log::info!("Running migrations");
-    let pool = PgPoolOptions::new()
-        .max_connections(5)
-        .connect(&config.database_url)
-        .await?;
-    sqlx::migrate!("./migrations").run(&pool).await?;
+    let pool = get_pool();
+    sqlx::migrate!("./migrations").run(pool).await?;
 
     let json_cfg = web::JsonConfig::default()
         .limit(4096)

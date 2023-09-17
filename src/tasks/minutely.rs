@@ -12,7 +12,7 @@ pub struct GameTask;
 #[typetag::serde]
 #[async_trait]
 impl AsyncRunnable for GameTask {
-    async fn run(&self, _queueable: &mut dyn AsyncQueueable) -> Result<(), FangError> {
+    async fn run(&self, _queue: &mut dyn AsyncQueueable) -> Result<(), FangError> {
         log::debug!("Running GameTask");
         Ok(())
     }
