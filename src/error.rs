@@ -110,22 +110,12 @@ impl From<sqlx::migrate::MigrateError> for SimilariumError {
     }
 }
 
-impl From<awc::error::SendRequestError> for SimilariumError {
-    fn from(error: awc::error::SendRequestError) -> Self {
+impl From<reqwest::Error> for SimilariumError {
+    fn from(error: reqwest::Error) -> Self {
         log::error!("Error sending request: {}", error);
         SimilariumError {
             message: Some("Unexpected error sending request".to_string()),
             error_type: SimilariumErrorType::SlackApiError,
-        }
-    }
-}
-
-impl From<awc::error::JsonPayloadError> for SimilariumError {
-    fn from(error: awc::error::JsonPayloadError) -> Self {
-        log::error!("Error parsing JSON: {}", error);
-        SimilariumError {
-            message: Some("Unexpected error parsing JSON".to_string()),
-            error_type: SimilariumErrorType::JsonParseError,
         }
     }
 }
