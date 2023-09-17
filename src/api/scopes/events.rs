@@ -36,18 +36,32 @@ async fn post_events(
                 &app_state.slack_client,
             )
             .await?;
+            let token =
+                SlackBot::get_slack_bot_token(&user.team_id, &api_app_id, &app_state.db).await?;
 
             let game = Game::get(channel.id.as_str(), message.ts.as_str(), &app_state.db)
                 .await?
                 .map_or_else(|| validation_error!("Game not found"), Ok)?;
 
+            if game.user_already_won(&user.id, &app_state.db).await? {
+                app_state
+                    .slack_client
+                    .post_ephemeral(
+                        ":warning: You already got the winning word, you can't make any further guesses :warning:",
+                        &channel.id,
+                        &user.id,
+                        &token,
+                        None,
+                    )
+                    .await?;
+                return Ok(HttpResponse::Ok().into());
+            }
+
             let guess = submit_guess(&local_user, &game, &action.value, &app_state).await?;
 
-            // TODO: prevent guesses after getting the secret
             if guess.is_secret() {
-                let token =
-                    SlackBot::get_slack_bot_token(&user.team_id, &api_app_id, &app_state.db)
-                        .await?;
+                game.add_winner(&user.id, guess.guess_num.unwrap(), &app_state.db).await?;
+
                 // Let the user know they guessed the secret
                 app_state
                     .slack_client

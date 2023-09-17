@@ -29,7 +29,8 @@ impl User {
     pub async fn insert(&self, db: &sqlx::PgPool) -> Result<(), sqlx::Error> {
         sqlx::query!(
             r#"
-            INSERT INTO "user"(id, profile_photo, username)
+            INSERT INTO 
+                "user"(id, profile_photo, username)
             VALUES ($1, $2, $3);
             "#,
             self.id,

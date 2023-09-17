@@ -1,3 +1,4 @@
+use crate::models::GameWinnerAssociation;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -218,6 +219,33 @@ impl Game {
         };
 
         last_puzzle_number + 1
+    }
+
+    pub async fn user_already_won(
+        &self,
+        user_id: &str,
+        db: &sqlx::PgPool,
+    ) -> Result<bool, sqlx::Error> {
+        Ok(GameWinnerAssociation::get(self.id, user_id, db)
+            .await?
+            .is_some())
+    }
+
+    pub async fn add_winner(
+        &self,
+        user_id: &str,
+        guess_idx: i64,
+        db: &sqlx::PgPool,
+    ) -> Result<(), sqlx::Error> {
+        let game_winner = GameWinnerAssociation {
+            game_id: self.id,
+            user_id: user_id.to_string(),
+            guess_idx,
+            created: chrono::Utc::now().timestamp_millis(),
+        };
+        game_winner.insert(db).await?;
+
+        Ok(())
     }
 }
 
