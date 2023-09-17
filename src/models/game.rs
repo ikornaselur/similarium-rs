@@ -117,7 +117,7 @@ impl Game {
         active: bool,
         db: &sqlx::PgPool,
     ) -> Result<(), SimilariumError> {
-        log::debug!("Setting active to {}", active);
+        log::debug!("[Game: {}] Setting active to {}", self.id, active);
         self.active = active;
         sqlx::query!(
             r#"
@@ -141,7 +141,7 @@ impl Game {
         thread_ts: &str,
         db: &sqlx::PgPool,
     ) -> Result<(), SimilariumError> {
-        log::debug!("Setting thread_ts to {}", thread_ts);
+        log::debug!("[Game: {}] Setting thread_ts to {}", self.id, thread_ts);
         self.thread_ts = Some(thread_ts.to_string());
         sqlx::query!(
             r#"
