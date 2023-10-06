@@ -7,13 +7,13 @@ RUN USER=root cargo new similarium
 WORKDIR /usr/src/similarium
 
 COPY Cargo.toml Cargo.lock ./
-RUN cargo build --release --target x86_64-unknown-linux-musl --bin similarium
+RUN cargo build --target x86_64-unknown-linux-musl --bin similarium
 
 COPY src ./src
 COPY .sqlx ./.sqlx
 COPY migrations ./migrations
 COPY build.rs ./
-RUN cargo build --release --target x86_64-unknown-linux-musl --bin similarium
+RUN cargo build --target x86_64-unknown-linux-musl --bin similarium
 
 FROM scratch
  
