@@ -83,14 +83,40 @@ impl Guess {
                     guess_num, 
                     ROW_NUMBER() OVER (PARTITION BY game_id ORDER BY guess_num) AS row_num
                 FROM guess
+                WHERE game_id = $1
             ) AS s
-            WHERE guess.id = s.id; 
+            WHERE guess.id = s.id
             "#,
+            self.game_id,
         )
         .execute(&mut *tx)
         .await?;
 
         tx.commit().await?;
+
+        Ok(())
+    }
+
+    pub async fn refresh_guess_num(&mut self, db: &sqlx::PgPool) -> Result<(), SimilariumError> {
+        match sqlx::query_scalar!(
+            r#"
+            SELECT 
+                guess_num
+            FROM
+                guess
+            WHERE
+                id = $1
+            "#,
+            self.id,
+        )
+        .fetch_one(db)
+        .await?
+        {
+            Some(guess_num) => self.guess_num = Some(guess_num),
+            None => {
+                return db_error!("Unable to refresh guess_num");
+            }
+        }
 
         Ok(())
     }

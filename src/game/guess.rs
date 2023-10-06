@@ -28,7 +28,7 @@ pub async fn submit_guess(
         return Ok(guess);
     }
 
-    let guess = Guess {
+    let mut guess = Guess {
         id: Uuid::new_v4(),
         game_id: game.id,
         updated: chrono::Utc::now().timestamp_millis(),
@@ -40,6 +40,7 @@ pub async fn submit_guess(
         latest_guess_user_id: user.id.clone(),
     };
     guess.insert(&app_state.db).await?;
+    guess.refresh_guess_num(&app_state.db).await?;
 
     Ok(guess)
 }
