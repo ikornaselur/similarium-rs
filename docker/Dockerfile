@@ -1,13 +1,13 @@
 FROM rust:1.72-buster AS builder
 WORKDIR /usr/src
-RUN apt-get update -y && apt-get install musl-tools -y
+RUN apt-get update -y && apt-get install musl-tools ca-certificates -y
 RUN rustup target add x86_64-unknown-linux-musl
 
-RUN USER=root cargo new similarium-rs
-WORKDIR /usr/src/similarium-rs
+RUN USER=root cargo new similarium
+WORKDIR /usr/src/similarium
 
 COPY Cargo.toml Cargo.lock ./
-RUN cargo build --release
+RUN cargo install --target x86_64-unknown-linux-musl --path .
 
 COPY src ./src
 COPY .sqlx ./.sqlx
@@ -16,6 +16,10 @@ COPY build.rs ./
 RUN cargo install --target x86_64-unknown-linux-musl --path .
 
 FROM scratch
+
 COPY --from=builder /usr/local/cargo/bin/similarium .
+COPY --from=builder /etc/ssl /etc/ssl
 USER 1000
+EXPOSE 8080
+
 CMD ["./similarium"]
