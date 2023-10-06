@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.5.0](https://github.com/ikornaselur/similarium-rs/compare/v0.4.3...v0.5.0) (2023-10-06)
+
+
+### Features
+
+* Post ephemeral back to user if word is unknown ([#82](https://github.com/ikornaselur/similarium-rs/issues/82)) ([c4199d5](https://github.com/ikornaselur/similarium-rs/commit/c4199d540a71a712abc21e3f1c3c2e3cfa247c6c))
+
+
+### Miscellaneous
+
+* Tweak the dockerfile to include ca-certificates ([#80](https://github.com/ikornaselur/similarium-rs/issues/80)) ([ac43c1f](https://github.com/ikornaselur/similarium-rs/commit/ac43c1fe1519b054d21902c5eb9185bc86c415b7))
+
+
+### Dependencies
+
+* bump reqwest from 0.11.20 to 0.11.21 ([#78](https://github.com/ikornaselur/similarium-rs/issues/78)) ([ca04ac6](https://github.com/ikornaselur/similarium-rs/commit/ca04ac67bec62d2d67b15e0ac9058409ff470688))
+* bump reqwest from 0.11.21 to 0.11.22 ([#79](https://github.com/ikornaselur/similarium-rs/issues/79)) ([2bfd8a5](https://github.com/ikornaselur/similarium-rs/commit/2bfd8a5b48858287f3b60b74fd9d39feec2cbc7b))
+* bump sha2 from 0.10.7 to 0.10.8 ([#75](https://github.com/ikornaselur/similarium-rs/issues/75)) ([2338646](https://github.com/ikornaselur/similarium-rs/commit/233864606442efea25e0269cd5dc3c5c4c49894d))
+* bump sqlx from 0.7.1 to 0.7.2 ([#76](https://github.com/ikornaselur/similarium-rs/issues/76)) ([641d6cb](https://github.com/ikornaselur/similarium-rs/commit/641d6cb705f4867b058f87baf5c071e131aafa44))
+
 ## [0.4.3](https://github.com/ikornaselur/similarium-rs/compare/v0.4.2...v0.4.3) (2023-09-17)
 
 
