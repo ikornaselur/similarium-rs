@@ -55,7 +55,31 @@ async fn post_events(
                 return Ok(HttpResponse::Ok().into());
             }
 
-            let guess = submit_guess(&local_user, &game, &action.value, &app_state).await?;
+            // Match on SimilariumERror with error_type SimilariumErrorType::NotFound to let the
+            // user know the word isn't in the dictionary
+            let guess = match submit_guess(&local_user, &game, &action.value, &app_state).await {
+                Ok(guess) => guess,
+                Err(SimilariumError {
+                    error_type: crate::error::SimilariumErrorType::NotFound,
+                    ..
+                }) => {
+                    app_state
+                        .slack_client
+                        .post_ephemeral(
+                            &format!(
+                                ":warning: *\"{}\" is not a valid word!* :warning:",
+                                &action.value
+                            ),
+                            &channel.id,
+                            &user.id,
+                            &token,
+                            None,
+                        )
+                        .await?;
+                    return Ok(HttpResponse::Ok().into());
+                }
+                Err(e) => return Err(e),
+            };
 
             if guess.is_secret() {
                 game.add_winner(&user.id, guess.guess_num.unwrap(), &app_state.db)
