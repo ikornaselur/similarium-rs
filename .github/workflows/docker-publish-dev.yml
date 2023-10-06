@@ -1,10 +1,10 @@
-name: Create and publish a Docker image
+name: Create and publish a Docker image for main merges
 
 on:
   workflow_dispatch:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - main
 
 env:
   REGISTRY: ghcr.io
@@ -27,17 +27,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./docker/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:dev
