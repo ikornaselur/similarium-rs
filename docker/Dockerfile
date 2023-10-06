@@ -16,10 +16,10 @@ COPY build.rs ./
 RUN cargo build --release --target x86_64-unknown-linux-musl --bin similarium
 
 FROM scratch
- 
+
 COPY --from=builder /usr/src/similarium/target/x86_64-unknown-linux-musl/release/similarium .
 COPY --from=builder /etc/ssl /etc/ssl
 USER 1000
 EXPOSE 8080
- 
+
 CMD ["./similarium"]
