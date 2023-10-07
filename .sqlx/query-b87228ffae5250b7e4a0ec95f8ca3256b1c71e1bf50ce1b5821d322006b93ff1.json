@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE\n                guess\n            SET\n                guess_num = s.row_num\n            FROM (\n                SELECT \n                    id,\n                    guess_num, \n                    ROW_NUMBER() OVER (PARTITION BY game_id ORDER BY guess_num) AS row_num\n                FROM guess\n                WHERE game_id = $1\n            ) AS s\n            WHERE guess.id = s.id\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b87228ffae5250b7e4a0ec95f8ca3256b1c71e1bf50ce1b5821d322006b93ff1"
+}
