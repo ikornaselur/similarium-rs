@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.1](https://github.com/ikornaselur/similarium-rs/compare/v0.5.0...v0.5.1) (2023-10-07)
+
+
+### Bug Fixes
+
+* Fix issue with winning guess erroring ([#87](https://github.com/ikornaselur/similarium-rs/issues/87)) ([3bdbaf0](https://github.com/ikornaselur/similarium-rs/commit/3bdbaf0bd3fec2339f49b22c8e19cf848e8f2ff2))
+
+
+### Miscellaneous
+
+* Fix dockerfile COPY entry ([#86](https://github.com/ikornaselur/similarium-rs/issues/86)) ([f0b19e7](https://github.com/ikornaselur/similarium-rs/commit/f0b19e7e8ce0c72cb131e8cd6f60f323dbd7eed7))
+* Use cargo build instead of cargo install ([#84](https://github.com/ikornaselur/similarium-rs/issues/84)) ([44411fd](https://github.com/ikornaselur/similarium-rs/commit/44411fd88dfc1d2a84fe9faca53b90b2b790d7b6))
+
 ## [0.5.0](https://github.com/ikornaselur/similarium-rs/compare/v0.4.3...v0.5.0) (2023-10-06)
 
 
