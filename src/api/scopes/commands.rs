@@ -6,8 +6,8 @@ use crate::{
         utils::{parse_command, Command},
     },
     game::{
-        end_games_on_channel, manual_start, schedule_game_on_channel, stop_games_on_channel,
-        utils::get_help_blocks,
+        end_game, get_active_games_on_channel, manual_start, schedule_game_on_channel,
+        stop_games_on_channel, utils::get_help_blocks,
     },
     models::SlackBot,
     payloads::CommandPayload,
@@ -105,13 +105,24 @@ async fn post_similarium_command(
             .await?
         }
         Command::ManualEnd => {
-            end_games_on_channel(
-                &app_state.db,
-                &app_state.slack_client,
-                &payload.channel_id,
-                &token,
-            )
-            .await?
+            let active_games =
+                get_active_games_on_channel(&app_state.db, &payload.channel_id).await?;
+            for mut game in active_games {
+                if game.get_guess_count(&app_state.db).await? == 0 {
+                    log::info!("Game with no guesses, not starting a new one");
+                    let _ = &app_state
+                        .slack_client
+                        .post_message(
+                            "The previous game has no guesses, so I won't start a new one!",
+                            &payload.channel_id,
+                            &token,
+                            None,
+                        )
+                        .await?;
+                    continue;
+                }
+                end_game(&app_state.db, &app_state.slack_client, &mut game, &token).await?;
+            }
         }
         Command::Debug => todo!(),
     }
