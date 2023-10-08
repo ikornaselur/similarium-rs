@@ -272,6 +272,30 @@ impl Game {
 
         Ok(())
     }
+
+    pub async fn get_winners(
+        &self,
+        db: &sqlx::PgPool,
+    ) -> Result<Vec<GameWinnerAssociation>, SimilariumError> {
+        let winners = sqlx::query_as!(
+            GameWinnerAssociation,
+            r#"
+            SELECT
+                *
+            FROM
+                game_user_winner_association
+            WHERE
+                game_id = $1
+            ORDER BY
+                created ASC
+            "#,
+            self.id
+        )
+        .fetch_all(db)
+        .await?;
+
+        Ok(winners)
+    }
 }
 
 #[cfg(test)]

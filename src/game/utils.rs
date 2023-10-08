@@ -15,9 +15,49 @@ pub fn get_header_text(date: DateTime<Utc>, puzzle_number: i64) -> String {
     format!("{puzzle_date} - Puzzle number {puzzle_number}")
 }
 
+fn get_medal(idx: usize) -> String {
+    match idx {
+        0 => ":first_place_medal:",
+        1 => ":second_place_medal:",
+        2 => ":third_place_medal:",
+        _ => "",
+    }
+    .to_string()
+}
+
 /// Generate header body of a game for Slack message
-pub fn get_header_body(guesses: i64) -> String {
-    format!("*Guesses*: {}", guesses)
+///
+/// If the game is active, the guess count is shown
+/// If there are any winners, they are always shown
+/// If the game is not active, the secret is shown
+pub async fn get_header_body(game: &Game, db: &sqlx::PgPool) -> String {
+    let guesses = game.get_guess_count(db).await.unwrap_or(0);
+    let winners = game.get_winners(db).await.unwrap_or(vec![]);
+
+    let mut lines: Vec<String> = vec![];
+
+    if game.active {
+        lines.push(format!("*Guesses*: {}", guesses));
+    } else {
+        lines.push(format!("The secret was *{}* :tada:", game.secret));
+    }
+
+    if !winners.is_empty() {
+        lines.push("*Winners*".to_string());
+        for (idx, winner) in winners.iter().enumerate() {
+            lines.push(format!(
+                "{} <@{}> on guess {}",
+                get_medal(idx),
+                winner.user_id,
+                winner.guess_idx
+            ));
+        }
+        lines.join("\n");
+    } else if !game.active {
+        lines.push("*No winners*".to_string());
+    }
+
+    lines.join("\n")
 }
 
 /// Generate the blocks for a game
@@ -25,39 +65,38 @@ pub async fn get_game_blocks(
     game: &Game,
     db: &sqlx::PgPool,
 ) -> Result<Vec<Block>, SimilariumError> {
-    let header_body = get_header_body(game.get_guess_count(db).await?);
-
+    let header_body = get_header_body(game, db).await;
     let header = get_header_text(game.date, game.puzzle_number);
-    let mut blocks = vec![
-        Block::header(&header),
-        Block::section(&header_body, None),
-        // TODO: If finished?
-    ];
+    let guess_count = game.get_guess_count(db).await.unwrap_or(0);
 
-    // Show latest
-    if game.active {
-        blocks.push(Block::section("*Latest guesses*", None));
+    let mut blocks = vec![Block::header(&header), Block::section(&header_body, None)];
 
+    if guess_count > 0 {
+        // Show latest, only while game is active
+        if game.active {
+            blocks.push(Block::section("*Latest guesses*", None));
+
+            let game_guesses = game
+                .get_guess_contexts(GuessContextOrder::GuessUpdated, 3, db)
+                .await?;
+            blocks.extend(
+                game_guesses
+                    .into_iter()
+                    .map(|guess| Block::guess_context("latest", guess, game.active)),
+            );
+        }
+
+        // Show top, if there are any so far
+        blocks.push(Block::section("*Top guesses*", None));
         let game_guesses = game
-            .get_guess_contexts(GuessContextOrder::GuessUpdated, 3, db)
+            .get_guess_contexts(GuessContextOrder::Rank, 15, db)
             .await?;
         blocks.extend(
             game_guesses
                 .into_iter()
-                .map(|guess| Block::guess_context("latest", guess, game.active)),
+                .map(|guess| Block::guess_context("top", guess, game.active)),
         );
     }
-
-    // Show top
-    blocks.push(Block::section("*Top guesses*", None));
-    let game_guesses = game
-        .get_guess_contexts(GuessContextOrder::Rank, 15, db)
-        .await?;
-    blocks.extend(
-        game_guesses
-            .into_iter()
-            .map(|guess| Block::guess_context("top", guess, game.active)),
-    );
 
     // Show input
     if game.active {
@@ -125,11 +164,6 @@ mod tests {
             get_header_text(datetime, puzzle_number),
             String::from("Saturday May 7 - Puzzle number 123")
         );
-    }
-
-    #[test]
-    fn test_get_header_body() {
-        assert_eq!(get_header_body(123), String::from("*Guesses*: 123"));
     }
 
     #[test]

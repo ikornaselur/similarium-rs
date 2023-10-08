@@ -2,10 +2,10 @@ use chrono::{NaiveTime, Timelike, Utc};
 use uuid::Uuid;
 
 use crate::{
-    game::utils::{get_game_blocks, get_header_body, get_header_text, get_secret},
+    game::utils::{get_game_blocks, get_secret},
     models::{Channel, Game, Word2Vec},
     payloads::CommandPayload,
-    slack_client::{responses::UserInfoResponse, Block, SlackClient},
+    slack_client::{responses::UserInfoResponse, SlackClient},
     utils::{get_utc_naive_time, when_human},
     SimilariumError, SimilariumErrorType,
 };
@@ -169,16 +169,15 @@ pub async fn manual_start(
     };
 
     log::debug!("Setting up target word");
-
     let datetime = Utc::now();
     let puzzle_number = Game::get_next_puzzle_number(channel.id.clone(), db).await;
-    let header_text = get_header_text(datetime, puzzle_number);
 
     let secret = get_secret(&channel.id, puzzle_number);
     let target_word = Word2Vec {
         word: secret.clone(),
     };
     target_word.create_materialised_view(db).await?;
+    log::debug!("Target word: {}", target_word.word);
 
     log::debug!("Setting up the game");
     let mut game = Game {
@@ -194,14 +193,7 @@ pub async fn manual_start(
     game.insert(db).await?;
 
     log::debug!("Setting up the message");
-    let header_body = get_header_body(game.get_guess_count(db).await?);
-
-    let blocks: Vec<Block> = vec![
-        Block::header(&header_text),
-        Block::section(&header_body, None),
-        Block::divider(),
-        Block::guess_input(),
-    ];
+    let blocks = get_game_blocks(&game, db).await?;
 
     log::debug!("Submitting the message");
     let res = slack_client
@@ -245,7 +237,6 @@ pub async fn start_game_on_channel(
 
     let datetime = Utc::now();
     let puzzle_number = Game::get_next_puzzle_number(channel.id.clone(), db).await;
-    let header_text = get_header_text(datetime, puzzle_number);
 
     let secret = get_secret(&channel.id, puzzle_number);
     let target_word = Word2Vec {
@@ -267,14 +258,7 @@ pub async fn start_game_on_channel(
     game.insert(db).await?;
 
     log::debug!("Setting up the message");
-    let header_body = get_header_body(game.get_guess_count(db).await?);
-
-    let blocks: Vec<Block> = vec![
-        Block::header(&header_text),
-        Block::section(&header_body, None),
-        Block::divider(),
-        Block::guess_input(),
-    ];
+    let blocks = get_game_blocks(&game, db).await?;
 
     log::debug!("Submitting the message");
     let res = slack_client
