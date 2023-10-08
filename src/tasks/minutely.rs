@@ -1,6 +1,6 @@
 use crate::{
     db::get_pool,
-    game::{end_games_on_channel, start_game_on_channel},
+    game::{end_game, get_active_games_on_channel, start_game_on_channel},
     models::Channel,
     models::SlackBot,
     slack_client::SlackClient,
@@ -44,10 +44,29 @@ impl AsyncRunnable for GameTask {
             let token = SlackBot::get_slack_bot_token(&channel.team_id, pool)
                 .await
                 .unwrap();
-            end_games_on_channel(pool, &slack_client, &channel.id, &token).await?;
 
-            // Start a new game on the channel
-            start_game_on_channel(pool, &slack_client, &channel.id, &token).await?;
+            let active_games = get_active_games_on_channel(pool, &channel.id).await?;
+            let mut should_start_game = true;
+
+            for mut game in active_games {
+                if game.get_guess_count(pool).await? == 0 {
+                    log::info!("Game with no guesses, not starting a new one");
+                    should_start_game = false;
+                    slack_client
+                        .post_message(
+                            "The previous game has no guesses, so I won't start a new one!",
+                            &channel.id,
+                            &token,
+                            None,
+                        )
+                        .await?;
+                    continue;
+                }
+                end_game(pool, &slack_client, &mut game, &token).await?;
+            }
+            if should_start_game {
+                start_game_on_channel(pool, &slack_client, &channel.id, &token).await?;
+            }
         }
 
         Ok(())

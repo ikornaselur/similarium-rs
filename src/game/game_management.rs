@@ -283,13 +283,10 @@ pub async fn start_game_on_channel(
     Ok(())
 }
 
-pub async fn end_games_on_channel(
+pub async fn get_active_games_on_channel(
     db: &sqlx::PgPool,
-    slack_client: &SlackClient,
     channel_id: &str,
-    token: &str,
-) -> Result<(), SimilariumError> {
-    // Get all active games in the channel
+) -> Result<Vec<Game>, SimilariumError> {
     let channel = match Channel::get(channel_id, db).await? {
         Some(channel) => channel,
         None => {
@@ -297,25 +294,32 @@ pub async fn end_games_on_channel(
         }
     };
 
-    for mut game in channel.get_active_games(db).await? {
-        log::debug!("Ending game: {}", game.id);
+    channel.get_active_games(db).await
+}
 
-        // Set game to be inactive
-        game.set_active(false, db).await?;
-        if let Some(thread_ts) = &game.thread_ts {
-            // Update the game to say it's over
-            let blocks = get_game_blocks(&game, db).await?;
+pub async fn end_game(
+    db: &sqlx::PgPool,
+    slack_client: &SlackClient,
+    game: &mut Game,
+    token: &str,
+) -> Result<(), SimilariumError> {
+    log::debug!("Ending game: {}", game.id);
 
-            slack_client
-                .chat_update(
-                    "Update to today's game",
-                    &channel.id,
-                    thread_ts,
-                    token,
-                    Some(blocks),
-                )
-                .await?;
-        }
+    // Set game to be inactive
+    game.set_active(false, db).await?;
+    if let Some(thread_ts) = &game.thread_ts {
+        // Update the game to say it's over
+        let blocks = get_game_blocks(game, db).await?;
+
+        slack_client
+            .chat_update(
+                "Update to today's game",
+                &game.channel_id,
+                thread_ts,
+                token,
+                Some(blocks),
+            )
+            .await?;
     }
 
     Ok(())
