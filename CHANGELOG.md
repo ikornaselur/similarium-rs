@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.0](https://github.com/ikornaselur/similarium-rs/compare/v0.5.1...v0.6.0) (2023-10-08)
+
+
+### Features
+
+* Only end games automatically if there are no guesses ([#94](https://github.com/ikornaselur/similarium-rs/issues/94)) ([48c9d09](https://github.com/ikornaselur/similarium-rs/commit/48c9d09b481c656da3596689df82c959e1e2aca1))
+* Reveal secret and winners at the end ([#93](https://github.com/ikornaselur/similarium-rs/issues/93)) ([8beff0f](https://github.com/ikornaselur/similarium-rs/commit/8beff0fa33b8557e1df32f61bfafce28cf164dcf))
+
+
+### Bug Fixes
+
+* Trim guess inputs ([#91](https://github.com/ikornaselur/similarium-rs/issues/91)) ([15a1d7c](https://github.com/ikornaselur/similarium-rs/commit/15a1d7cd55fc46e7f626e31b246826363bcb9bbe))
+
 ## [0.5.1](https://github.com/ikornaselur/similarium-rs/compare/v0.5.0...v0.5.1) (2023-10-07)
 
 
