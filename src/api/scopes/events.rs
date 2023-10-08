@@ -28,6 +28,7 @@ async fn post_events(
             if action.action_id != "submit-guess" {
                 return validation_error!("Invalid action_id: {}", action.action_id);
             }
+            let guess_value = action.value.trim();
             let local_user = get_or_create_user(
                 &user.id,
                 &user.team_id,
@@ -36,7 +37,6 @@ async fn post_events(
             )
             .await?;
             let token = SlackBot::get_slack_bot_token(&user.team_id, &app_state.db).await?;
-
             let game = Game::get(channel.id.as_str(), message.ts.as_str(), &app_state.db)
                 .await?
                 .map_or_else(|| validation_error!("Game not found"), Ok)?;
@@ -57,7 +57,7 @@ async fn post_events(
 
             // Match on SimilariumERror with error_type SimilariumErrorType::NotFound to let the
             // user know the word isn't in the dictionary
-            let guess = match submit_guess(&local_user, &game, &action.value, &app_state).await {
+            let guess = match submit_guess(&local_user, &game, guess_value, &app_state).await {
                 Ok(guess) => guess,
                 Err(SimilariumError {
                     error_type: crate::error::SimilariumErrorType::NotFound,
@@ -68,7 +68,7 @@ async fn post_events(
                         .post_ephemeral(
                             &format!(
                                 ":warning: *\"{}\" is not a valid word!* :warning:",
-                                &action.value
+                                &guess_value,
                             ),
                             &channel.id,
                             &user.id,
