@@ -1,7 +1,7 @@
 use crate::{
     api::app::AppState,
     game::{submit_guess, utils::get_game_blocks},
-    models::{Game, SlackBot},
+    models::{Game, Guess, SlackBot},
     payloads::{Event, EventPayload},
     utils::get_or_create_user,
     SimilariumError,
@@ -82,8 +82,15 @@ async fn post_events(
             };
 
             if guess.is_secret() {
-                game.add_winner(&user.id, guess.guess_num.unwrap(), &app_state.db)
-                    .await?;
+                let guess_num = match guess {
+                    Guess {
+                        user_id,
+                        guess_num: Some(guess_num),
+                        ..
+                    } if user_id == user.id => guess_num,
+                    _ => game.get_guess_count(&app_state.db).await.unwrap_or(0),
+                };
+                game.add_winner(&user.id, guess_num, &app_state.db).await?;
 
                 // Let the user know they guessed the secret
                 app_state
