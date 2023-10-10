@@ -108,19 +108,6 @@ async fn post_similarium_command(
             let active_games =
                 get_active_games_on_channel(&app_state.db, &payload.channel_id).await?;
             for mut game in active_games {
-                if game.get_guess_count(&app_state.db).await? == 0 {
-                    log::info!("Game with no guesses, not starting a new one");
-                    let _ = &app_state
-                        .slack_client
-                        .post_message(
-                            "The previous game has no guesses, so I won't start a new one!",
-                            &payload.channel_id,
-                            &token,
-                            None,
-                        )
-                        .await?;
-                    continue;
-                }
                 end_game(&app_state.db, &app_state.slack_client, &mut game, &token).await?;
             }
         }
