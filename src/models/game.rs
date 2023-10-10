@@ -178,6 +178,12 @@ impl Game {
         .map_or(Ok(0), Ok)
     }
 
+    /// Get the guess contexts for a game
+    ///
+    /// If the order is by Rank, then the guess contexts are ordered by rank ascending and the
+    /// username + profile_photo is of the first user that made the guess
+    /// If the order is by GuessUpdated, then the guess contexts are ordered by updated descending
+    /// and the username + profile_photo is of the last user that made the guess
     pub async fn get_guess_contexts(
         &self,
         order: GuessContextOrder,
@@ -199,13 +205,17 @@ impl Game {
             LEFT JOIN
                 "user" u
             ON
-                g.user_id = u.id
+                {}
             WHERE
                 game_id = $1
             ORDER BY
                 {}
             LIMIT $2
             "#,
+            match order {
+                GuessContextOrder::Rank => "g.user_id = u.id",
+                GuessContextOrder::GuessUpdated => "g.latest_guess_user_id = u.id",
+            },
             match order {
                 GuessContextOrder::Rank => "rank ASC",
                 GuessContextOrder::GuessUpdated => "updated DESC",
