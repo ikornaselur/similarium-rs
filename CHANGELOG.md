@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.1](https://github.com/ikornaselur/similarium-rs/compare/v0.6.0...v0.6.1) (2023-10-10)
+
+
+### Bug Fixes
+
+* Correctly set the guess num for winners ([#102](https://github.com/ikornaselur/similarium-rs/issues/102)) ([c0bd1e8](https://github.com/ikornaselur/similarium-rs/commit/c0bd1e8ac246cc3e1073049adf870d1f261248a6))
+* Fix issue with latest guesses showing original instead of latest guesser ([#101](https://github.com/ikornaselur/similarium-rs/issues/101)) ([6660898](https://github.com/ikornaselur/similarium-rs/commit/666089819390cb1d30d0694024b1980b2ae66728))
+* Fix manual ending not ending inactive games ([#103](https://github.com/ikornaselur/similarium-rs/issues/103)) ([b81ab26](https://github.com/ikornaselur/similarium-rs/commit/b81ab26db6b3ba9fac5268ab754a8002d06ed10c))
+
+
+### Dependencies
+
+* bump tokio from 1.32.0 to 1.33.0 ([#96](https://github.com/ikornaselur/similarium-rs/issues/96)) ([f1dab5f](https://github.com/ikornaselur/similarium-rs/commit/f1dab5feffcbcd43eb0525643b6bb972d262d120))
+
 ## [0.6.0](https://github.com/ikornaselur/similarium-rs/compare/v0.5.1...v0.6.0) (2023-10-08)
 
 
