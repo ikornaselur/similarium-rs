@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2](https://github.com/ikornaselur/similarium-rs/compare/v0.6.1...v0.6.2) (2023-10-13)
+
+
+### Bug Fixes
+
+* Set the fallback text to the header text ([#106](https://github.com/ikornaselur/similarium-rs/issues/106)) ([43ea620](https://github.com/ikornaselur/similarium-rs/commit/43ea620f7888d58dc886a16b484653f4b6b4833f))
+
 ## [0.6.1](https://github.com/ikornaselur/similarium-rs/compare/v0.6.0...v0.6.1) (2023-10-10)
 
 
