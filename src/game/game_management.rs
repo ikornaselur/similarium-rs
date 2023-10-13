@@ -1,3 +1,4 @@
+use crate::game::utils::get_header_text;
 use chrono::{NaiveTime, Timelike, Utc};
 use uuid::Uuid;
 
@@ -259,10 +260,11 @@ pub async fn start_game_on_channel(
 
     log::debug!("Setting up the message");
     let blocks = get_game_blocks(&game, db).await?;
+    let text = get_header_text(game.date, game.puzzle_number);
 
     log::debug!("Submitting the message");
     let res = slack_client
-        .post_message("Manual start", channel_id, token, Some(blocks))
+        .post_message(&text, channel_id, token, Some(blocks))
         .await?;
 
     // Get the thread_ts and update the game
