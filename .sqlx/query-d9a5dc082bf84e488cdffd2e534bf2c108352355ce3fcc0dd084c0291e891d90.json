@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                matviewname\n            FROM\n                pg_matviews\n            WHERE\n                matviewname NOT IN (\n                    SELECT DISTINCT\n                        'word2vec_'||secret\n                    FROM\n                        game\n                    WHERE\n                        active=true\n                )\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "matviewname",
+        "type_info": "Name"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "d9a5dc082bf84e488cdffd2e534bf2c108352355ce3fcc0dd084c0291e891d90"
+}

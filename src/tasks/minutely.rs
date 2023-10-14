@@ -1,8 +1,7 @@
 use crate::{
     db::get_pool,
     game::{end_game, get_active_games_on_channel, start_game_on_channel},
-    models::Channel,
-    models::SlackBot,
+    models::{Channel, SlackBot},
     slack_client::SlackClient,
 };
 use chrono::Timelike;
@@ -41,9 +40,7 @@ impl AsyncRunnable for GameTask {
         // well and not blocking this task that runs every minute
         for channel in channels {
             // Check if there are any active games on the channel, and end them
-            let token = SlackBot::get_slack_bot_token(&channel.team_id, pool)
-                .await
-                .unwrap();
+            let token = SlackBot::get_slack_bot_token(&channel.team_id, pool).await?;
 
             let active_games = get_active_games_on_channel(pool, &channel.id).await?;
             let mut should_start_game = true;

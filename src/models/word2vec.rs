@@ -75,6 +75,45 @@ impl Word2Vec {
         Ok(())
     }
 
+    /// Cleanup materialised views
+    ///
+    /// Get a list of all materialised views and drop them, unless they have an active game that is
+    /// using them. This is intended to be ran as a nightly task.
+    pub async fn cleanup_materialised_views(db: &sqlx::PgPool) -> Result<(), SimilariumError> {
+        let inactive_matviews: Vec<String> = sqlx::query_scalar!(
+            r#"
+            SELECT
+                matviewname
+            FROM
+                pg_matviews
+            WHERE
+                matviewname NOT IN (
+                    SELECT DISTINCT
+                        'word2vec_'||secret
+                    FROM
+                        game
+                    WHERE
+                        active=true
+                )
+            "#,
+        )
+        .fetch_all(db)
+        .await?
+        .into_iter()
+        .flatten()
+        .collect();
+
+        // Drop the matviews that are not in use
+        for matview in inactive_matviews {
+            log::debug!("Dropping matview {}", matview);
+            sqlx::query(format!("DROP MATERIALIZED VIEW {}", matview).as_str())
+                .execute(db)
+                .await?;
+        }
+
+        Ok(())
+    }
+
     /// Get the rank and similarity of a provided word against the target word
     ///
     /// The word itself will have rank 0 and similarity at 1.0, with the next being below 1.0 and

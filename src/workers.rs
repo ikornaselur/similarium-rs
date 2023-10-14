@@ -38,5 +38,11 @@ pub async fn ensure_recurring_tasks(mut queue: AsyncQueue<NoTls>) -> Result<(), 
         .schedule_task(&game_task as &dyn fang::AsyncRunnable)
         .await?;
 
+    log::info!("Scheduling MatViewCleanupTask to run nightly");
+    let cleanup_task = tasks::MatViewCleanupTask {};
+    queue
+        .schedule_task(&cleanup_task as &dyn fang::AsyncRunnable)
+        .await?;
+
     Ok(())
 }
