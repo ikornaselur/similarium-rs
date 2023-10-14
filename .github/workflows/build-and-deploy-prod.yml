@@ -1,4 +1,4 @@
-name: Publish release Docker image
+name: Build and deploy prod
 
 on:
   workflow_dispatch:
@@ -41,3 +41,13 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Trigger deployment
+        run: curl -XPOST ${{ secrets.PROD_DEPLOYMENT_URL }}
