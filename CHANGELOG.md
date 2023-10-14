@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.3](https://github.com/ikornaselur/similarium-rs/compare/v0.6.2...v0.6.3) (2023-10-14)
+
+
+### Miscellaneous
+
+* **CI/CD:** Continously deploy releases to prod ([#111](https://github.com/ikornaselur/similarium-rs/issues/111)) ([a025cfe](https://github.com/ikornaselur/similarium-rs/commit/a025cfe318e1b5225126192784a41b2c52a90a50))
+* **CI/CD:** Trigger staging deployment after pushing :dev image ([#109](https://github.com/ikornaselur/similarium-rs/issues/109)) ([22f4f4d](https://github.com/ikornaselur/similarium-rs/commit/22f4f4d5f1acddfa347b174af41cd08d4d043edb))
+
+
+### Dependencies
+
+* bump serde from 1.0.188 to 1.0.189 ([#108](https://github.com/ikornaselur/similarium-rs/issues/108)) ([2700425](https://github.com/ikornaselur/similarium-rs/commit/2700425498967b1ab61ab6fa0d581e66bdc5014d))
+
 ## [0.6.2](https://github.com/ikornaselur/similarium-rs/compare/v0.6.1...v0.6.2) (2023-10-13)
 
 
