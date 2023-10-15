@@ -63,7 +63,7 @@ macro_rules! time {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use crate::{SimilariumError, SimilariumErrorType};
 
     #[test]

@@ -2,7 +2,7 @@ use similarium::models::{Game, Guess, GuessContextOrder, Word2Vec};
 use similarium::SimilariumError;
 use uuid::Uuid;
 
-#[sqlx::test(fixtures("channel", "game", "users", "words"))]
+#[sqlx::test(fixtures("channel", "games", "users", "words"))]
 fn test_adding_guess_to_game(pool: sqlx::PgPool) -> Result<(), SimilariumError> {
     let game_id: Uuid = Uuid::parse_str("00000001-0000-4000-a000-000000000000").unwrap();
     let game = Game::get_by_id(game_id, &pool).await?.unwrap();
@@ -37,7 +37,7 @@ fn test_adding_guess_to_game(pool: sqlx::PgPool) -> Result<(), SimilariumError> 
     Ok(())
 }
 
-#[sqlx::test(fixtures("channel", "game", "users", "words", "guesses"))]
+#[sqlx::test(fixtures("channel", "games", "users", "words", "guesses"))]
 fn test_get_guess_contexts_order_by_updated_gives_latest_guesser(
     pool: sqlx::PgPool,
 ) -> Result<(), SimilariumError> {
@@ -64,7 +64,7 @@ fn test_get_guess_contexts_order_by_updated_gives_latest_guesser(
     Ok(())
 }
 
-#[sqlx::test(fixtures("channel", "game", "users", "words", "guesses"))]
+#[sqlx::test(fixtures("channel", "games", "users", "words", "guesses"))]
 fn test_get_guess_contexts_order_by_rank_gives_original_guesser(
     pool: sqlx::PgPool,
 ) -> Result<(), SimilariumError> {
