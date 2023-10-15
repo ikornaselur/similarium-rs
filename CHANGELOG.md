@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.4](https://github.com/ikornaselur/similarium-rs/compare/v0.6.3...v0.6.4) (2023-10-14)
+
+
+### Miscellaneous
+
+* Add a nightly task to clean up materialised views ([#112](https://github.com/ikornaselur/similarium-rs/issues/112)) ([8565d43](https://github.com/ikornaselur/similarium-rs/commit/8565d437d33c9b0df882e92a5860d5c8b9831125))
+
 ## [0.6.3](https://github.com/ikornaselur/similarium-rs/compare/v0.6.2...v0.6.3) (2023-10-14)
 
 
