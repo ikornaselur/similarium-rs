@@ -2,6 +2,9 @@ on: [push]
 
 name: Test and lint
 
+env:
+  RUSTFLAGS: "-Cinstrument-coverage"
+
 jobs:
   build:
     name: Build and cache project
@@ -13,7 +16,7 @@ jobs:
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt, clippy
+          components: rustfmt, clippy, llvm-tools-preview
 
       - name: Cache
         id: cache
@@ -39,6 +42,8 @@ jobs:
 
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy, llvm-tools-preview
 
       - name: Cache
         uses: Swatinem/rust-cache@v2
@@ -72,6 +77,13 @@ jobs:
 
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy, llvm-tools-preview
+
+      - name: Install grcov
+        uses: taiki-e/install-action@v2
+        with:
+          tool: grcov
 
       - name: Cache
         uses: Swatinem/rust-cache@v2
@@ -83,6 +95,25 @@ jobs:
         env:
           SQLX_OFFLINE: 1
           DATABASE_URL: postgres://similarium:s3cr3t@localhost:5432/similarium
+          LLVM_PROFILE_FILE: "target/coverage/prof/%p-%m.profraw"
+
+      - name: Create coverage report
+        run: |
+         grcov \
+           --source-dir . \
+           --binary-path target/debug \
+           --branch \
+           --excl-start 'mod tests \{' \
+           --ignore 'tests/*' \
+           -t lcov \
+           -o lcov.info \
+           target/coverage/prof
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: lcov.info
+          fail_ci_if_error: false
 
   lints:
     name: Lint
@@ -95,7 +126,7 @@ jobs:
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt, clippy
+          components: rustfmt, clippy, llvm-tools-preview
 
       - name: Cache
         uses: Swatinem/rust-cache@v2
