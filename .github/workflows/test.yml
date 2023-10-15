@@ -1,6 +1,9 @@
-on: [push]
-
 name: Test and lint
+
+on:
+  push:
+    branches:
+      - '**'
 
 env:
   RUSTFLAGS: "-Cinstrument-coverage"
