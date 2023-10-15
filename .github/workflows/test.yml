@@ -2,6 +2,9 @@ on: [push]
 
 name: Test and lint
 
+env:
+  RUSTFLAGS: "-Cinstrument-coverage"
+
 jobs:
   build:
     name: Build and cache project
@@ -19,8 +22,6 @@ jobs:
       - name: Build project
         if: steps.cache.outputs.cache-hit != 'true'
         run: cargo build
-        env:
-          RUSTFLAGS: "-Cinstrument-coverage"
 
       - name: Cargo check to build a check cache
         if: steps.cache.outputs.cache-hit != 'true'
@@ -88,7 +89,6 @@ jobs:
           SQLX_OFFLINE: 1
           DATABASE_URL: postgres://similarium:s3cr3t@localhost:5432/similarium
           LLVM_PROFILE_FILE: "target/coverage/prof/%p-%m.profraw"
-          RUSTFLAGS: "-Cinstrument-coverage"
 
       - name: Create coverage report
         run: |
