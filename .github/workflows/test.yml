@@ -29,7 +29,7 @@ jobs:
 
       - name: Build project
         if: steps.cache.outputs.cache-hit != 'true'
-        run: cargo build
+        run: cargo build --tests
 
       - name: Cargo check to build a check cache
         if: steps.cache.outputs.cache-hit != 'true'
