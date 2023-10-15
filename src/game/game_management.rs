@@ -44,10 +44,10 @@ pub async fn schedule_game_on_channel(
     // Convert the given time to UTC, using the timezone offset
     let utc_time = get_utc_naive_time(time, user.tz_offset);
     let when = when_human(time);
-    let tz_offset = if user.tz_offset < 0 {
-        format!("UTC-{}", user.tz_offset / 3600)
-    } else {
-        format!("UTC+{}", user.tz_offset / 3600)
+    let tz_offset = match user.tz_offset {
+        0 => "UTC".to_string(),
+        offset if offset < 0 => format!("UTC-{}", offset / 3600),
+        offset => format!("UTC+{}", offset / 3600),
     };
 
     log::info!("Starting game on channel {}: {}", payload.channel_id, when);
