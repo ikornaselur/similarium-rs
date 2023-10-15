@@ -177,6 +177,7 @@ impl Block {
         }
     }
 
+    #[allow(dead_code)]
     pub fn divider() -> Self {
         Block {
             ..Default::default()
