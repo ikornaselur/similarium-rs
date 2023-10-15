@@ -83,10 +83,8 @@ jobs:
         with:
           components: rustfmt, clippy, llvm-tools-preview
 
-      - name: Install grcov
-        uses: taiki-e/install-action@v2
-        with:
-          tool: grcov
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
 
       - name: Cache
         uses: Swatinem/rust-cache@v2
@@ -94,28 +92,15 @@ jobs:
           shared-key: "run"
 
       - name: Run cargo test
-        run: cargo test
+        run: cargo llvm-cov --all-features --codecov --output-path codecov.json
         env:
           SQLX_OFFLINE: 1
           DATABASE_URL: postgres://similarium:s3cr3t@localhost:5432/similarium
-          LLVM_PROFILE_FILE: "target/coverage/prof/%p-%m.profraw"
-
-      - name: Create coverage report
-        run: |
-         grcov \
-           --source-dir . \
-           --binary-path target/debug \
-           --branch \
-           --excl-start 'mod tests \{' \
-           --ignore 'tests/*' \
-           -t lcov \
-           -o lcov.info \
-           target/coverage/prof
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          files: lcov.info
+          files: codecov.json
           fail_ci_if_error: false
 
   lints:
