@@ -6,14 +6,14 @@ use crate::{
     game::utils::{get_game_blocks, get_secret},
     models::{Channel, Game, Word2Vec},
     payloads::CommandPayload,
-    slack_client::{responses::UserInfoResponse, SlackClient},
+    slack_client::{responses::UserInfoResponse, SlackClient, SlackMessage, SlackUserDetails},
     utils::{get_utc_naive_time, when_human},
     SimilariumError, SimilariumErrorType,
 };
 
 pub async fn schedule_game_on_channel(
     db: &sqlx::PgPool,
-    slack_client: &SlackClient,
+    slack_client: &(impl SlackUserDetails + SlackMessage),
     payload: &CommandPayload,
     token: &str,
     time: NaiveTime,
@@ -221,7 +221,7 @@ pub async fn manual_start(
 
 pub async fn start_game_on_channel(
     db: &sqlx::PgPool,
-    slack_client: &SlackClient,
+    slack_client: &impl SlackMessage,
     channel_id: &str,
     token: &str,
 ) -> Result<(), SimilariumError> {

@@ -2,7 +2,7 @@ use crate::{
     db::get_pool,
     game::{end_game, get_active_games_on_channel, start_game_on_channel},
     models::{Channel, SlackBot},
-    slack_client::SlackClient,
+    slack_client::{SlackClient, SlackMessage},
 };
 use chrono::Timelike;
 use fang::{

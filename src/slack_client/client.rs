@@ -1,10 +1,12 @@
 use crate::{
     slack_client::{
         responses::{SlackOAuthResponse, UserInfoResponse},
+        traits::{SlackMessage, SlackOAuth, SlackUserDetails},
         Block,
     },
     SimilariumError,
 };
+use async_trait::async_trait;
 
 const CHAT_UPDATE_URL: &str = "https://slack.com/api/chat.update";
 const OAUTH_API_URL: &str = "https://slack.com/api/oauth.v2.access";
@@ -22,8 +24,17 @@ impl SlackClient {
             client: reqwest::Client::new(),
         }
     }
+}
 
-    pub async fn post_message(
+impl Default for SlackClient {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[async_trait]
+impl SlackMessage for SlackClient {
+    async fn post_message(
         &self,
         text: &str,
         channel_id: &str,
@@ -64,7 +75,7 @@ impl SlackClient {
         Ok(payload)
     }
 
-    pub async fn post_ephemeral(
+    async fn post_ephemeral(
         &self,
         text: &str,
         channel_id: &str,
@@ -112,43 +123,7 @@ impl SlackClient {
         Ok(payload)
     }
 
-    pub async fn post_oauth_code(
-        &self,
-        code: &str,
-        client_id: &str,
-        client_secret: &str,
-    ) -> Result<SlackOAuthResponse, SimilariumError> {
-        let res = self
-            .client
-            .post(OAUTH_API_URL)
-            .form(&[
-                ("code", code),
-                ("client_id", client_id),
-                ("client_secret", client_secret),
-            ])
-            .send()
-            .await?;
-
-        Ok(res.json::<SlackOAuthResponse>().await?)
-    }
-
-    pub async fn get_user_details(
-        &self,
-        user_id: &str,
-        token: &str,
-    ) -> Result<UserInfoResponse, SimilariumError> {
-        let res = self
-            .client
-            .get(USER_DETAILS_URL)
-            .query(&[("user", user_id)])
-            .bearer_auth(token)
-            .send()
-            .await?;
-
-        Ok(res.json::<UserInfoResponse>().await?)
-    }
-
-    pub async fn chat_update(
+    async fn chat_update(
         &self,
         text: &str,
         channel_id: &str,
@@ -197,8 +172,44 @@ impl SlackClient {
     }
 }
 
-impl Default for SlackClient {
-    fn default() -> Self {
-        Self::new()
+#[async_trait]
+impl SlackOAuth for SlackClient {
+    async fn post_oauth_code(
+        &self,
+        code: &str,
+        client_id: &str,
+        client_secret: &str,
+    ) -> Result<SlackOAuthResponse, SimilariumError> {
+        let res = self
+            .client
+            .post(OAUTH_API_URL)
+            .form(&[
+                ("code", code),
+                ("client_id", client_id),
+                ("client_secret", client_secret),
+            ])
+            .send()
+            .await?;
+
+        Ok(res.json::<SlackOAuthResponse>().await?)
+    }
+}
+
+#[async_trait]
+impl SlackUserDetails for SlackClient {
+    async fn get_user_details(
+        &self,
+        user_id: &str,
+        token: &str,
+    ) -> Result<UserInfoResponse, SimilariumError> {
+        let res = self
+            .client
+            .get(USER_DETAILS_URL)
+            .query(&[("user", user_id)])
+            .bearer_auth(token)
+            .send()
+            .await?;
+
+        Ok(res.json::<UserInfoResponse>().await?)
     }
 }

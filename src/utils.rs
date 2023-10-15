@@ -1,6 +1,6 @@
 use crate::{
     models::{SlackBot, User},
-    slack_client::{responses::UserInfoResponse, SlackClient},
+    slack_client::{responses::UserInfoResponse, SlackUserDetails},
     SimilariumError,
 };
 use chrono::{NaiveTime, Timelike};
@@ -9,7 +9,7 @@ pub async fn get_or_create_user(
     user_id: &str,
     team_id: &str,
     db: &sqlx::PgPool,
-    slack_client: &SlackClient,
+    slack_client: &impl SlackUserDetails,
 ) -> Result<User, SimilariumError> {
     let user = match User::get(user_id, db).await? {
         Some(user) => user,
