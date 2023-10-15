@@ -1833,7 +1833,7 @@ pub fn americanise(word: &str) -> String {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
 
     #[test]

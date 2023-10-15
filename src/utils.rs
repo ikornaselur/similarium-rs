@@ -72,7 +72,7 @@ pub fn get_utc_naive_time(time: NaiveTime, timezone_offset: i32) -> NaiveTime {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
 
     #[test]
