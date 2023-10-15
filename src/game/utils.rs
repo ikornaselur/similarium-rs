@@ -197,4 +197,12 @@ mod tests {
 
         assert_eq!(secret1, secret2);
     }
+
+    #[test]
+    fn test_get_medal() {
+        assert_eq!(get_medal(0), ":first_place_medal:");
+        assert_eq!(get_medal(1), ":second_place_medal:");
+        assert_eq!(get_medal(2), ":third_place_medal:");
+        assert_eq!(get_medal(3), "");
+    }
 }
