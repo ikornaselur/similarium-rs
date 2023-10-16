@@ -152,7 +152,7 @@ impl SlackMessage for SlackClient {
                 .await?
         } else {
             self.client
-                .post(self.get_url(POST_MESSAGE_PATH))
+                .post(self.get_url(CHAT_UPDATE_PATH))
                 .form(&[
                     ("token", token),
                     ("channel", channel_id),
@@ -358,6 +358,136 @@ mod tests {
         let request = slack_client
             .post_ephemeral(text, channel_id, user_id, token, blocks)
             .await;
+
+        mock.assert();
+
+        assert!(request.is_ok());
+
+        Ok(())
+    }
+    #[actix_web::test]
+    async fn test_slack_client_chat_update_sends_request_to_slack() -> Result<(), SimilariumError> {
+        let text = "Hello, world!";
+        let channel_id = "channel_x";
+        let token = "token_x";
+        let ts = "123456.789012";
+
+        let mut server = Server::new();
+
+        let mock = server
+            .mock("POST", CHAT_UPDATE_PATH)
+            .with_status(200)
+            .with_body(r#"{"ok": true}"#)
+            .match_body(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("token".into(), token.into()),
+                Matcher::UrlEncoded("channel".into(), channel_id.into()),
+                Matcher::UrlEncoded("text".into(), text.into()),
+                Matcher::UrlEncoded("ts".into(), ts.into()),
+            ]))
+            .create();
+
+        let slack_client = SlackClient::new(server.url());
+
+        let request = slack_client
+            .chat_update(text, channel_id, ts, token, None)
+            .await;
+
+        mock.assert();
+
+        assert!(request.is_ok());
+
+        Ok(())
+    }
+
+    #[actix_web::test]
+    async fn test_slack_client_chat_update_sends_request_to_slack_with_blocks(
+    ) -> Result<(), SimilariumError> {
+        let text = "Hello, world!";
+        let channel_id = "channel_x";
+        let token = "token_x";
+        let ts = "123456.789012";
+        let blocks = Some(vec![Block::section("Hello, blocks!", None)]);
+
+        let mut server = Server::new();
+
+        let mock = server
+            .mock("POST", CHAT_UPDATE_PATH)
+            .with_status(200)
+            .with_body(r#"{"ok": true}"#)
+            .match_body(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("token".into(), token.into()),
+                Matcher::UrlEncoded("channel".into(), channel_id.into()),
+                Matcher::UrlEncoded("text".into(), text.into()),
+                Matcher::UrlEncoded("ts".into(), ts.into()),
+                Matcher::UrlEncoded("blocks".into(), serde_json::to_string(&blocks).unwrap()),
+            ]))
+            .create();
+
+        let slack_client = SlackClient::new(server.url());
+
+        let request = slack_client
+            .chat_update(text, channel_id, ts, token, blocks)
+            .await;
+
+        mock.assert();
+
+        assert!(request.is_ok());
+
+        Ok(())
+    }
+
+    #[actix_web::test]
+    async fn test_slack_client_post_oauth_code_sends_request_to_slack(
+    ) -> Result<(), SimilariumError> {
+        let code = "code_x";
+        let client_id = "client_id_x";
+        let client_secret = "client_secret_x";
+
+        let mut server = Server::new();
+
+        let mock = server
+            .mock("POST", OAUTH_API_PATH)
+            .with_status(200)
+            .with_body(r#"{"ok": true, "app_id": "123", "team": {"id": "team_id"}, "is_enterprise_install": false}"#)
+            .match_body(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("code".into(), code.into()),
+                Matcher::UrlEncoded("client_id".into(), client_id.into()),
+                Matcher::UrlEncoded("client_secret".into(), client_secret.into()),
+            ]))
+            .create();
+
+        let slack_client = SlackClient::new(server.url());
+
+        let request = slack_client
+            .post_oauth_code(code, client_id, client_secret)
+            .await;
+
+        mock.assert();
+
+        assert!(request.is_ok());
+
+        Ok(())
+    }
+
+    #[actix_web::test]
+    async fn test_slack_client_get_user_details_sends_request_to_slack(
+    ) -> Result<(), SimilariumError> {
+        let user_id = "user_x";
+        let token = "token_x";
+
+        let mut server = Server::new();
+
+        let mock = server
+            .mock("GET", USER_DETAILS_PATH)
+            .with_status(200)
+            .with_body(r#"{"ok": true}"#)
+            .match_query(Matcher::UrlEncoded("user".into(), user_id.into()))
+            .match_header("Authorization", Matcher::Exact(format!("Bearer {}", token)))
+            .create();
+
+        let slack_client = SlackClient::new(server.url());
+
+        let request = slack_client.get_user_details(user_id, token).await;
 
         mock.assert();
 
