@@ -2,7 +2,7 @@ use crate::{
     db::get_pool,
     game::{end_game, get_active_games_on_channel, start_game_on_channel},
     models::{Channel, SlackBot},
-    slack_client::SlackClient,
+    slack_client::{SlackClient, SlackMessage},
 };
 use chrono::Timelike;
 use fang::{
@@ -34,7 +34,7 @@ impl AsyncRunnable for GameTask {
             return Ok(());
         }
 
-        let slack_client = SlackClient::new();
+        let slack_client = SlackClient::default();
 
         // TODO: Shift each of these into a separate task? Should be better for error handling as
         // well and not blocking this task that runs every minute

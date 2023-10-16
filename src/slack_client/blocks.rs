@@ -4,7 +4,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 enum BlockType {
     #[serde(rename = "section")]
     Section,
@@ -18,7 +18,7 @@ enum BlockType {
     Context,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 enum TextType {
     #[serde(rename = "mrkdwn")]
     Markdown,
@@ -26,7 +26,7 @@ enum TextType {
     PlainText,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Text {
     r#type: TextType,
     text: String,
@@ -58,13 +58,13 @@ impl Text {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 enum ElementType {
     #[serde(rename = "plain_text_input")]
     PlainTextInput,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Element {
     r#type: ElementType,
     action_id: String,
@@ -81,7 +81,7 @@ impl Element {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct ContextElement {
     r#type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -118,7 +118,7 @@ pub struct Context {
     elements: Vec<ContextElement>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Block {
     r#type: BlockType,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -177,6 +177,7 @@ impl Block {
         }
     }
 
+    #[allow(dead_code)]
     pub fn divider() -> Self {
         Block {
             ..Default::default()

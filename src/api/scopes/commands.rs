@@ -1,3 +1,4 @@
+use crate::slack_client::SlackMessage;
 use actix_web::{post, web, HttpResponse, Scope};
 
 use crate::{

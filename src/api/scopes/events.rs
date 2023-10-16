@@ -3,6 +3,7 @@ use crate::{
     game::{submit_guess, utils::get_game_blocks},
     models::{Game, Guess, SlackBot},
     payloads::{Event, EventPayload},
+    slack_client::SlackMessage,
     utils::get_or_create_user,
     SimilariumError,
 };
