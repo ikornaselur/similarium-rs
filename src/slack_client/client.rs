@@ -8,27 +8,33 @@ use crate::{
 };
 use async_trait::async_trait;
 
-const CHAT_UPDATE_URL: &str = "https://slack.com/api/chat.update";
-const OAUTH_API_URL: &str = "https://slack.com/api/oauth.v2.access";
-const POST_MESSAGE_URL: &str = "https://slack.com/api/chat.postMessage";
-const USER_DETAILS_URL: &str = "https://slack.com/api/users.info";
-const POST_EPHEMERAL_URL: &str = "https://slack.com/api/chat.postEphemeral";
+pub const CHAT_UPDATE_PATH: &str = "/chat.update";
+pub const OAUTH_API_PATH: &str = "/oauth.v2.access";
+pub const POST_MESSAGE_PATH: &str = "/chat.postMessage";
+pub const USER_DETAILS_PATH: &str = "/users.info";
+pub const POST_EPHEMERAL_PATH: &str = "/chat.postEphemeral";
 
 pub struct SlackClient {
     client: reqwest::Client,
+    base_url: String,
 }
 
 impl SlackClient {
-    pub fn new() -> Self {
+    pub fn new(base_url: String) -> Self {
         Self {
             client: reqwest::Client::new(),
+            base_url,
         }
+    }
+
+    fn get_url(&self, path: &str) -> String {
+        format!("{}{}", self.base_url, path)
     }
 }
 
 impl Default for SlackClient {
     fn default() -> Self {
-        Self::new()
+        Self::new("https://slack.com/api".to_string())
     }
 }
 
@@ -43,7 +49,7 @@ impl SlackMessage for SlackClient {
     ) -> Result<serde_json::Value, SimilariumError> {
         let res = if let Some(blocks) = blocks {
             self.client
-                .post(POST_MESSAGE_URL)
+                .post(self.get_url(POST_MESSAGE_PATH))
                 .form(&[
                     ("token", token),
                     ("channel", channel_id),
@@ -54,7 +60,7 @@ impl SlackMessage for SlackClient {
                 .await?
         } else {
             self.client
-                .post(POST_MESSAGE_URL)
+                .post(self.get_url(POST_MESSAGE_PATH))
                 .form(&[("token", token), ("channel", channel_id), ("text", text)])
                 .send()
                 .await?
@@ -85,7 +91,7 @@ impl SlackMessage for SlackClient {
     ) -> Result<serde_json::Value, SimilariumError> {
         let res = if let Some(blocks) = blocks {
             self.client
-                .post(POST_EPHEMERAL_URL)
+                .post(self.get_url(POST_EPHEMERAL_PATH))
                 .form(&[
                     ("token", token),
                     ("channel", channel_id),
@@ -97,7 +103,7 @@ impl SlackMessage for SlackClient {
                 .await?
         } else {
             self.client
-                .post(POST_EPHEMERAL_URL)
+                .post(self.get_url(POST_EPHEMERAL_PATH))
                 .form(&[
                     ("token", token),
                     ("channel", channel_id),
@@ -133,7 +139,7 @@ impl SlackMessage for SlackClient {
     ) -> Result<serde_json::Value, SimilariumError> {
         let res = if let Some(blocks) = blocks {
             self.client
-                .post(CHAT_UPDATE_URL)
+                .post(self.get_url(CHAT_UPDATE_PATH))
                 .form(&[
                     ("token", token),
                     ("channel", channel_id),
@@ -145,7 +151,7 @@ impl SlackMessage for SlackClient {
                 .await?
         } else {
             self.client
-                .post(POST_MESSAGE_URL)
+                .post(self.get_url(POST_MESSAGE_PATH))
                 .form(&[
                     ("token", token),
                     ("channel", channel_id),
@@ -182,7 +188,7 @@ impl SlackOAuth for SlackClient {
     ) -> Result<SlackOAuthResponse, SimilariumError> {
         let res = self
             .client
-            .post(OAUTH_API_URL)
+            .post(self.get_url(OAUTH_API_PATH))
             .form(&[
                 ("code", code),
                 ("client_id", client_id),
@@ -204,7 +210,7 @@ impl SlackUserDetails for SlackClient {
     ) -> Result<UserInfoResponse, SimilariumError> {
         let res = self
             .client
-            .get(USER_DETAILS_URL)
+            .get(self.get_url(USER_DETAILS_PATH))
             .query(&[("user", user_id)])
             .bearer_auth(token)
             .send()

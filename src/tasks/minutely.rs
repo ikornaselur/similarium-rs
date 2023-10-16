@@ -34,7 +34,7 @@ impl AsyncRunnable for GameTask {
             return Ok(());
         }
 
-        let slack_client = SlackClient::new();
+        let slack_client = SlackClient::default();
 
         // TODO: Shift each of these into a separate task? Should be better for error handling as
         // well and not blocking this task that runs every minute

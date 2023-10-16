@@ -61,7 +61,7 @@ pub async fn run() -> Result<(), SimilariumError> {
             .app_data(web::Data::new(AppState {
                 db: pool.clone(),
                 config: config.clone(),
-                slack_client: SlackClient::new(),
+                slack_client: SlackClient::default(),
                 queue: Arc::new(Mutex::new(queue.clone())),
             }))
             .configure(scopes::config)
