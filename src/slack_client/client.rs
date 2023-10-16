@@ -229,8 +229,6 @@ mod tests {
     #[actix_web::test]
     async fn test_slack_client_post_message_sends_request_to_slack() -> Result<(), SimilariumError>
     {
-        let _ = env_logger::builder().is_test(true).try_init();
-
         let text = "Hello, world!";
         let channel_id = "channel_x";
         let token = "token_x";
@@ -264,8 +262,6 @@ mod tests {
     #[actix_web::test]
     async fn test_slack_client_post_message_sends_request_to_slack_with_blocks(
     ) -> Result<(), SimilariumError> {
-        let _ = env_logger::builder().is_test(true).try_init();
-
         let text = "Hello, world!";
         let channel_id = "channel_x";
         let token = "token_x";
@@ -289,6 +285,78 @@ mod tests {
 
         let request = slack_client
             .post_message(text, channel_id, token, blocks)
+            .await;
+
+        mock.assert();
+
+        assert!(request.is_ok());
+
+        Ok(())
+    }
+
+    #[actix_web::test]
+    async fn test_slack_client_post_ephemeral_sends_request_to_slack() -> Result<(), SimilariumError>
+    {
+        let text = "Hello, world!";
+        let channel_id = "channel_x";
+        let token = "token_x";
+        let user_id = "user_x";
+
+        let mut server = Server::new();
+
+        let mock = server
+            .mock("POST", POST_EPHEMERAL_PATH)
+            .with_status(200)
+            .with_body(r#"{"ok": true}"#)
+            .match_body(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("token".into(), token.into()),
+                Matcher::UrlEncoded("channel".into(), channel_id.into()),
+                Matcher::UrlEncoded("text".into(), text.into()),
+                Matcher::UrlEncoded("user".into(), user_id.into()),
+            ]))
+            .create();
+
+        let slack_client = SlackClient::new(server.url());
+
+        let request = slack_client
+            .post_ephemeral(text, channel_id, user_id, token, None)
+            .await;
+
+        mock.assert();
+
+        assert!(request.is_ok());
+
+        Ok(())
+    }
+
+    #[actix_web::test]
+    async fn test_slack_client_post_ephemeral_sends_request_to_slack_with_blocks(
+    ) -> Result<(), SimilariumError> {
+        let text = "Hello, world!";
+        let channel_id = "channel_x";
+        let token = "token_x";
+        let user_id = "user_x";
+        let blocks = Some(vec![Block::section("Hello, blocks!", None)]);
+
+        let mut server = Server::new();
+
+        let mock = server
+            .mock("POST", POST_EPHEMERAL_PATH)
+            .with_status(200)
+            .with_body(r#"{"ok": true}"#)
+            .match_body(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("token".into(), token.into()),
+                Matcher::UrlEncoded("channel".into(), channel_id.into()),
+                Matcher::UrlEncoded("text".into(), text.into()),
+                Matcher::UrlEncoded("user".into(), user_id.into()),
+                Matcher::UrlEncoded("blocks".into(), serde_json::to_string(&blocks).unwrap()),
+            ]))
+            .create();
+
+        let slack_client = SlackClient::new(server.url());
+
+        let request = slack_client
+            .post_ephemeral(text, channel_id, user_id, token, blocks)
             .await;
 
         mock.assert();
