@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.6.5](https://github.com/ikornaselur/similarium-rs/compare/v0.6.4...v0.6.5) (2023-10-31)
+
+
+### Miscellaneous
+
+* Add codecov to test action ([#115](https://github.com/ikornaselur/similarium-rs/issues/115)) ([2f25052](https://github.com/ikornaselur/similarium-rs/commit/2f250520ebabceca16f1760b46a54c216fd933af))
+* Replace grcov with llvm-cov ([#118](https://github.com/ikornaselur/similarium-rs/issues/118)) ([14f0d00](https://github.com/ikornaselur/similarium-rs/commit/14f0d0006d87b77360768536721d4140bb02161b))
+* Skip running linting and testing on tag creation ([#114](https://github.com/ikornaselur/similarium-rs/issues/114)) ([53e2211](https://github.com/ikornaselur/similarium-rs/commit/53e2211397fd1acfa8541322a15eda87a0d54120))
+* **test:** Introduce mockito/mockall and increase test coverage ([#117](https://github.com/ikornaselur/similarium-rs/issues/117)) ([11b2561](https://github.com/ikornaselur/similarium-rs/commit/11b25616d87c81541a53c914580f685018c9fd63))
+* Tweak codecov further and add basic tests ([#119](https://github.com/ikornaselur/similarium-rs/issues/119)) ([f3f538e](https://github.com/ikornaselur/similarium-rs/commit/f3f538e1eb4b12c379c3dbf66eb8e80c0d0d6c39))
+
+
+### Dependencies
+
+* bump serde from 1.0.189 to 1.0.190 ([#121](https://github.com/ikornaselur/similarium-rs/issues/121)) ([c7fb873](https://github.com/ikornaselur/similarium-rs/commit/c7fb8738cdf27857d24e90238849df02eee46ede))
+* bump serde_json from 1.0.107 to 1.0.108 ([#122](https://github.com/ikornaselur/similarium-rs/issues/122)) ([c218b41](https://github.com/ikornaselur/similarium-rs/commit/c218b414183aa8283c928297d058e25fd341c426))
+* bump uuid from 1.4.1 to 1.5.0 ([#120](https://github.com/ikornaselur/similarium-rs/issues/120)) ([03596b7](https://github.com/ikornaselur/similarium-rs/commit/03596b7f58074c8b33c8614d89cc54abc6139810))
+
 ## [0.6.4](https://github.com/ikornaselur/similarium-rs/compare/v0.6.3...v0.6.4) (2023-10-14)
 
 
