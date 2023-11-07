@@ -18,7 +18,7 @@ env_logger = "0.10"
 fang = { version = "0.10.4", default-features=false, features = ["asynk", "derive-error"] }
 log = "0.4"
 num-format = "0.4.4"
-openssl = { version = "0.10.58", features = ["vendored"] }
+openssl = { version = "0.10.59", features = ["vendored"] }
 phf = { version = "0.11.2", features = ["macros"] }
 rand = "0.8"
 rand_pcg = "0.3.1"
