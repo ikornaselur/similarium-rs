@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.6.6](https://github.com/ikornaselur/similarium-rs/compare/v0.6.5...v0.6.6) (2023-11-25)
+
+
+### Bug Fixes
+
+* Trim and lowercase inputs ([#137](https://github.com/ikornaselur/similarium-rs/issues/137)) ([cbcc1d2](https://github.com/ikornaselur/similarium-rs/commit/cbcc1d2761e6c8513f75d77aae80637b896bf5ef))
+
+
+### Dependencies
+
+* bump env_logger from 0.10.0 to 0.10.1 ([#130](https://github.com/ikornaselur/similarium-rs/issues/130)) ([9ee43d5](https://github.com/ikornaselur/similarium-rs/commit/9ee43d5201cecf8e65fb9db1694d03be3b89d900))
+* bump openssl from 0.10.57 to 0.10.58 ([#124](https://github.com/ikornaselur/similarium-rs/issues/124)) ([c749898](https://github.com/ikornaselur/similarium-rs/commit/c749898303aa9266fa7e9607aa66791841349c3a))
+* bump openssl from 0.10.58 to 0.10.59 ([#126](https://github.com/ikornaselur/similarium-rs/issues/126)) ([cdb8ab9](https://github.com/ikornaselur/similarium-rs/commit/cdb8ab9beb5ae122026e870f4a26edaf1533e138))
+* bump rustix from 0.38.11 to 0.38.25 ([#133](https://github.com/ikornaselur/similarium-rs/issues/133)) ([5a59016](https://github.com/ikornaselur/similarium-rs/commit/5a590169bafa77fff722e63eccb8093776304eac))
+* bump serde from 1.0.190 to 1.0.191 ([#127](https://github.com/ikornaselur/similarium-rs/issues/127)) ([b64c78d](https://github.com/ikornaselur/similarium-rs/commit/b64c78d055e3a6cf72f3a21d7dcc076a6b7af307))
+* bump serde from 1.0.191 to 1.0.192 ([#128](https://github.com/ikornaselur/similarium-rs/issues/128)) ([c8aa955](https://github.com/ikornaselur/similarium-rs/commit/c8aa955041af0f6bdba4b5ddc5870dbee747239b))
+* bump serde from 1.0.192 to 1.0.193 ([#132](https://github.com/ikornaselur/similarium-rs/issues/132)) ([c452264](https://github.com/ikornaselur/similarium-rs/commit/c45226409a2fae1169511894e21707b840f4652f))
+* bump tokio from 1.33.0 to 1.34.0 ([#129](https://github.com/ikornaselur/similarium-rs/issues/129)) ([aeecd53](https://github.com/ikornaselur/similarium-rs/commit/aeecd5342806cca2572ce238d2167acb2c1bec64))
+* bump uuid from 1.5.0 to 1.6.1 ([#131](https://github.com/ikornaselur/similarium-rs/issues/131)) ([f6d99fc](https://github.com/ikornaselur/similarium-rs/commit/f6d99fca7e4dce929afda30d451518dae4838750))
+
 ## [0.6.5](https://github.com/ikornaselur/similarium-rs/compare/v0.6.4...v0.6.5) (2023-10-31)
 
 
