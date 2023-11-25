@@ -58,7 +58,7 @@ async fn post_events(
 
             // Match on SimilariumERror with error_type SimilariumErrorType::NotFound to let the
             // user know the word isn't in the dictionary
-            let guess = match submit_guess(&local_user, &game, guess_value, &app_state).await {
+            let guess = match submit_guess(&local_user, &game, guess_value, &app_state.db).await {
                 Ok(guess) => guess,
                 Err(SimilariumError {
                     error_type: crate::error::SimilariumErrorType::NotFound,

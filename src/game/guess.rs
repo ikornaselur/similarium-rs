@@ -1,5 +1,4 @@
 use crate::{
-    api::AppState,
     models::{Game, Guess, User, Word2Vec},
     spelling::americanise,
     SimilariumError,
@@ -10,20 +9,18 @@ pub async fn submit_guess(
     user: &User,
     game: &Game,
     guess: &str,
-    app_state: &AppState,
+    db: &sqlx::PgPool,
 ) -> Result<Guess, SimilariumError> {
     // Get the similarity for the guess
     let secret = Word2Vec {
         word: game.secret.clone(),
     };
-    let guess = americanise(guess);
-    let similarity = secret.get_similarity(&guess, &app_state.db).await?;
+    let guess = americanise(guess.to_lowercase().trim());
+    let similarity = secret.get_similarity(&guess, db).await?;
 
-    if let Some(mut guess) = Guess::get(game.id, &guess, &app_state.db).await? {
+    if let Some(mut guess) = Guess::get(game.id, &guess, db).await? {
         log::debug!("Guess has already been made, updating timestamp");
-        guess
-            .update_latest_guess_user_id(&user.id, &app_state.db)
-            .await?;
+        guess.update_latest_guess_user_id(&user.id, db).await?;
 
         return Ok(guess);
     }
@@ -39,8 +36,8 @@ pub async fn submit_guess(
         guess_num: None,
         latest_guess_user_id: user.id.clone(),
     };
-    guess.insert(&app_state.db).await?;
-    guess.refresh_guess_num(&app_state.db).await?;
+    guess.insert(db).await?;
+    guess.refresh_guess_num(db).await?;
 
     Ok(guess)
 }
