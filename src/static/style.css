@@ -1,0 +1,14 @@
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px; /* Adjust the spacing as needed */
+}
+
+.rank {
+  margin-right: 10px; /* Adjust the spacing between rank and word */
+}

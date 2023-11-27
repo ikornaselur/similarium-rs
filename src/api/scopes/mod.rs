@@ -1,6 +1,7 @@
 mod auth;
 mod commands;
 mod events;
+mod ui;
 
 use actix_web::{get, web, Error, HttpResponse};
 
@@ -14,7 +15,8 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(home_handler)
         .service(auth::scope())
         .service(events::scope())
-        .service(commands::scope());
+        .service(commands::scope())
+        .service(ui::scope());
 
     conf.service(home_scope);
 }
