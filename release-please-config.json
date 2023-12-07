@@ -9,7 +9,8 @@
     { "type": "perf", "section": "Performance Improvements" },
     { "type": "docs", "section": "Documentation" },
     { "type": "chore", "section": "Miscellaneous" },
-    { "type": "refactor", "section": "Code Refactoring" }
+    { "type": "refactor", "section": "Code Refactoring" },
+    { "type": "deps", "section": "Dependencies" }
   ],
   "packages": {
     ".": {}
