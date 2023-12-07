@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.7](https://github.com/ikornaselur/similarium-rs/compare/v0.6.6...v0.6.7) (2023-12-07)
+
+
+### Miscellaneous
+
+* Use manifest releaser in release-please ([#142](https://github.com/ikornaselur/similarium-rs/issues/142)) ([06d833f](https://github.com/ikornaselur/similarium-rs/commit/06d833fe18743b466ecf97bf390d78a8def43e29))
+
+
+### Dependencies
+
+* bump openssl from 0.10.59 to 0.10.60 ([#136](https://github.com/ikornaselur/similarium-rs/issues/136)) ([fffcab2](https://github.com/ikornaselur/similarium-rs/commit/fffcab2d150aed6018c5e2ac73b4e08c3df0ed98))
+* bump sqlx from 0.7.2 to 0.7.3 ([#135](https://github.com/ikornaselur/similarium-rs/issues/135)) ([c447d2a](https://github.com/ikornaselur/similarium-rs/commit/c447d2a9ca662988721195ee3fa8b9717b5cbcc0))
+* Remove vendored openssl ([#141](https://github.com/ikornaselur/similarium-rs/issues/141)) ([543517f](https://github.com/ikornaselur/similarium-rs/commit/543517fea92a379876c817d7df78f2b87cad7550))
+
 ## [0.6.6](https://github.com/ikornaselur/similarium-rs/compare/v0.6.5...v0.6.6) (2023-11-25)
 
 
