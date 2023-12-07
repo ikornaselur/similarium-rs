@@ -1,4 +1,5 @@
-FROM rust:1.72-buster AS builder
+FROM rust:1.74-buster AS builder
+
 WORKDIR /usr/src
 RUN apt-get update -y && apt-get install musl-tools ca-certificates -y
 RUN rustup target add x86_64-unknown-linux-musl
