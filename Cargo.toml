@@ -36,5 +36,5 @@ lto = true
 strip = true
 
 [dev-dependencies]
-mockall = "0.11.4"
+mockall = "0.12.0"
 mockito = "1.2.0"
