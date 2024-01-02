@@ -43,4 +43,4 @@ postgres:
     -e POSTGRES_DB=similarium \
     -p 127.0.0.1:5432:5432 \
     -d \
-    tensorchord/pgvecto-rs:latest 
+    tensorchord/pgvecto-rs:pg15-v0.1.13
