@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: tensorchord/pgvecto-rs:latest
+        image: tensorchord/pgvecto-rs:pg15-v0.1.13
         env:
           POSTGRES_USER: similarium
           POSTGRES_PASSWORD: s3cr3t

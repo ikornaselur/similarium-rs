@@ -19,7 +19,7 @@ services:
         condition: service_healthy
 
   db:
-    image: tensorchord/pgvecto-rs:latest
+    image: tensorchord/pgvecto-rs:pg15-v0.1.13
     environment:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
