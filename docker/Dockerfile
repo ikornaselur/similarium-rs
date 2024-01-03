@@ -1,4 +1,4 @@
-FROM rust:1.74-buster AS builder
+FROM rust:1.75-buster AS builder
 
 WORKDIR /usr/src
 RUN apt-get update -y && apt-get install musl-tools ca-certificates -y

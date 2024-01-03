@@ -6,7 +6,6 @@ use crate::{
     },
     SimilariumError,
 };
-use async_trait::async_trait;
 
 const CHAT_UPDATE_PATH: &str = "/chat.update";
 const OAUTH_API_PATH: &str = "/oauth.v2.access";
@@ -38,7 +37,6 @@ impl Default for SlackClient {
     }
 }
 
-#[async_trait]
 impl SlackMessage for SlackClient {
     async fn post_message(
         &self,
@@ -179,7 +177,6 @@ impl SlackMessage for SlackClient {
     }
 }
 
-#[async_trait]
 impl SlackOAuth for SlackClient {
     async fn post_oauth_code(
         &self,
@@ -202,7 +199,6 @@ impl SlackOAuth for SlackClient {
     }
 }
 
-#[async_trait]
 impl SlackUserDetails for SlackClient {
     async fn get_user_details(
         &self,
