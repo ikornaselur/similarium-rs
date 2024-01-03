@@ -2,7 +2,7 @@ use crate::{
     db::get_pool,
     game::{end_game, get_active_games_on_channel, start_game_on_channel},
     models::{Channel, SlackBot},
-    slack_client::{SlackClient, SlackMessage},
+    slack_client::SlackClient,
 };
 use chrono::Timelike;
 use fang::{
@@ -49,14 +49,6 @@ impl AsyncRunnable for GameTask {
                 if game.get_guess_count(pool).await? == 0 {
                     log::info!("Game with no guesses, not starting a new one");
                     should_start_game = false;
-                    slack_client
-                        .post_message(
-                            "The previous game has no guesses, so I won't start a new one!",
-                            &channel.id,
-                            &token,
-                            None,
-                        )
-                        .await?;
                     continue;
                 }
                 end_game(pool, &slack_client, &mut game, &token).await?;
