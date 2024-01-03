@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use mockall::mock;
 use mockall::predicate::*;
 use similarium::{
@@ -52,7 +51,6 @@ fn get_test_user_info_response() -> UserInfoResponse {
 mock! {
     SlackClient {}
 
-    #[async_trait]
     impl SlackMessage for SlackClient {
         async fn post_message(
             &self,
@@ -81,7 +79,6 @@ mock! {
         ) -> Result<serde_json::Value, SimilariumError>;
     }
 
-    #[async_trait]
     impl SlackUserDetails for SlackClient {
         async fn get_user_details(
             &self,
