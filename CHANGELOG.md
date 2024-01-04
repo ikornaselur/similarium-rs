@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.7.0](https://github.com/ikornaselur/similarium-rs/compare/v0.6.7...v0.7.0) (2024-01-04)
+
+
+### Features
+
+* Disable the daily message if no guesses made to previous game ([#159](https://github.com/ikornaselur/similarium-rs/issues/159)) ([d58f52e](https://github.com/ikornaselur/similarium-rs/commit/d58f52eaa0d2fc0ce4030186b895ee9ebab80aa9))
+
+
+### Bug Fixes
+
+* Pin pgvecto-rs to pg15-latest instead of latest ([#155](https://github.com/ikornaselur/similarium-rs/issues/155)) ([9758ab2](https://github.com/ikornaselur/similarium-rs/commit/9758ab293335e60c496156029cddee62dba20b97))
+
+
+### Dependencies
+
+* bump actix-web from 4.4.0 to 4.4.1 ([#152](https://github.com/ikornaselur/similarium-rs/issues/152)) ([1ef8adb](https://github.com/ikornaselur/similarium-rs/commit/1ef8adb01a7a454be1c996e9aaef0f9ee468d122))
+* bump mockall from 0.11.4 to 0.12.0 ([#146](https://github.com/ikornaselur/similarium-rs/issues/146)) ([f56ce33](https://github.com/ikornaselur/similarium-rs/commit/f56ce335aafcfd2ced80039d1f7455397ba97353))
+* bump mockall from 0.12.0 to 0.12.1 ([#150](https://github.com/ikornaselur/similarium-rs/issues/150)) ([4817a91](https://github.com/ikornaselur/similarium-rs/commit/4817a916a1dbda79be2b1aea4a4fbdce3823dbae))
+* bump reqwest from 0.11.22 to 0.11.23 ([#148](https://github.com/ikornaselur/similarium-rs/issues/148)) ([dc481b8](https://github.com/ikornaselur/similarium-rs/commit/dc481b82283a3c6f134cad6525e1b856b51036a6))
+* bump serde from 1.0.193 to 1.0.194 ([#157](https://github.com/ikornaselur/similarium-rs/issues/157)) ([7397a8b](https://github.com/ikornaselur/similarium-rs/commit/7397a8b5ced4b180c342f5e66986bbbfa081251b))
+* bump serde_json from 1.0.108 to 1.0.110 ([#156](https://github.com/ikornaselur/similarium-rs/issues/156)) ([7d11a00](https://github.com/ikornaselur/similarium-rs/commit/7d11a00b2f63c6672a4ac3bffb61e05661d10ab9))
+* bump tokio from 1.34.0 to 1.35.0 ([#144](https://github.com/ikornaselur/similarium-rs/issues/144)) ([6821e4e](https://github.com/ikornaselur/similarium-rs/commit/6821e4e85cbf57180d0db9e4a0475d5d9f77209c))
+* bump tokio from 1.35.0 to 1.35.1 ([#149](https://github.com/ikornaselur/similarium-rs/issues/149)) ([2a0c0fe](https://github.com/ikornaselur/similarium-rs/commit/2a0c0fec807e8d9c0bfd78e7e2f95e6fae5697e2))
+* bump zerocopy from 0.7.26 to 0.7.31 ([#147](https://github.com/ikornaselur/similarium-rs/issues/147)) ([5b74daa](https://github.com/ikornaselur/similarium-rs/commit/5b74daaf6a7eb6626b7226012e54920b1387ba69))
+* Remove async-trait and bump Rust to 1.75 ([#158](https://github.com/ikornaselur/similarium-rs/issues/158)) ([e077c19](https://github.com/ikornaselur/similarium-rs/commit/e077c19a6c9208a149d41b6bf4b0655f3034cbe6))
+
 ## [0.6.7](https://github.com/ikornaselur/similarium-rs/compare/v0.6.6...v0.6.7) (2023-12-07)
 
 
