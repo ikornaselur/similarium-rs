@@ -98,7 +98,7 @@ jobs:
           DATABASE_URL: postgres://similarium:s3cr3t@localhost:5432/similarium
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         if: "!contains(github.ref, 'release')"
         with:
           files: codecov.json
