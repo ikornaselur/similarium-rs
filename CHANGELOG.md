@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.1](https://github.com/ikornaselur/similarium-rs/compare/v0.7.0...v0.7.1) (2024-03-11)
+
+
+### Dependencies
+
+* bump log from 0.4.20 to 0.4.21 ([#183](https://github.com/ikornaselur/similarium-rs/issues/183)) ([fd50248](https://github.com/ikornaselur/similarium-rs/commit/fd50248dde058460975e7c663e28b5f8f3edf1a4))
+* bump mio from 0.8.10 to 0.8.11 ([#186](https://github.com/ikornaselur/similarium-rs/issues/186)) ([ba2be36](https://github.com/ikornaselur/similarium-rs/commit/ba2be36052a11f0d461d12a112084e0c52ac65e5))
+* bump reqwest from 0.11.24 to 0.11.25 ([#187](https://github.com/ikornaselur/similarium-rs/issues/187)) ([baf4854](https://github.com/ikornaselur/similarium-rs/commit/baf4854a87ab3da5f914e29855c5573e82e33185))
+* bump serde from 1.0.196 to 1.0.197 ([#180](https://github.com/ikornaselur/similarium-rs/issues/180)) ([c14ea20](https://github.com/ikornaselur/similarium-rs/commit/c14ea20bf3ab1f5489c47f4970335c4265ce1523))
+* **github-actions:** bump codecov/codecov-action from 3 to 4 ([#176](https://github.com/ikornaselur/similarium-rs/issues/176)) ([d89d88f](https://github.com/ikornaselur/similarium-rs/commit/d89d88faa79efd09f7103c58dffc9a8345260d0c))
+* Update all dependencies ([#173](https://github.com/ikornaselur/similarium-rs/issues/173)) ([3d692ad](https://github.com/ikornaselur/similarium-rs/commit/3d692ad26767247cedf06dea8b5a3bda98bdfa5c))
+
 ## [0.7.0](https://github.com/ikornaselur/similarium-rs/compare/v0.6.7...v0.7.0) (2024-01-04)
 
 
