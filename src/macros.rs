@@ -34,6 +34,15 @@ macro_rules! slack_api_error {
     };
 }
 
+macro_rules! ai_error {
+    ($($t:tt)*) => {
+        Err($crate::error::SimilariumError {
+            message: Some(format!($($t)*)),
+            error_type: $crate::error::SimilariumErrorType::AIError,
+        })
+    };
+}
+
 #[cfg(test)]
 macro_rules! datetime {
     ($year:expr, $month:expr, $day:expr) => {

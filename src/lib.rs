@@ -12,6 +12,7 @@ mod spelling;
 mod tasks;
 pub mod utils;
 pub mod workers;
+pub mod ai;
 
 pub use error::{SimilariumError, SimilariumErrorType};
 pub use game::TARGET_WORDS;

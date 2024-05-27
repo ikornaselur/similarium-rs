@@ -15,6 +15,7 @@ pub enum SimilariumErrorType {
     MissingThreadTs,
     SerialisationError,
     ValueError,
+    AIError,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -57,6 +58,7 @@ impl ResponseError for SimilariumError {
             | SimilariumErrorType::MissingThreadTs
             | SimilariumErrorType::SerialisationError
             | SimilariumErrorType::ValueError
+            | SimilariumErrorType::AIError
             | SimilariumErrorType::SlackApiError => StatusCode::INTERNAL_SERVER_ERROR,
             SimilariumErrorType::NotFound => StatusCode::NOT_FOUND,
             SimilariumErrorType::ValidationError => StatusCode::BAD_REQUEST,
@@ -184,6 +186,16 @@ impl From<fang::AsyncQueueError> for SimilariumError {
         log::error!("AsyncQueueError: {}", error);
         SimilariumError {
             message: Some("Unexpected AsyncQueueError".to_string()),
+            error_type: SimilariumErrorType::Error,
+        }
+    }
+}
+
+impl From<async_openai::error::OpenAIError> for SimilariumError {
+    fn from(error: async_openai::error::OpenAIError) -> Self {
+        log::error!("OpenAIError: {}", error);
+        SimilariumError {
+            message: Some("Unexpected OpenAIError".to_string()),
             error_type: SimilariumErrorType::Error,
         }
     }

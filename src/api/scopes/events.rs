@@ -1,8 +1,9 @@
 use crate::{
+    ai::get_celebration,
     api::app::AppState,
     game::{submit_guess, utils::get_game_blocks},
     models::{Game, Guess, SlackBot},
-    payloads::{Event, EventPayload},
+    payloads::{Channel, Event, EventPayload, User},
     slack_client::SlackMessage,
     utils::get_or_create_user,
     SimilariumError,
@@ -56,7 +57,16 @@ async fn post_events(
                 return Ok(HttpResponse::Ok().into());
             }
 
-            // Match on SimilariumERror with error_type SimilariumErrorType::NotFound to let the
+            // Get the top rank, so that we can know if we had a milestone with this guess. A
+            // milestone is first guess in the top 1000, top 100 and top 10.
+            // If no guess has been made, we can just set the top rank to 1001, as that's higher
+            // than the biggest 'bucket' we celebrate for
+            let top_rank = game
+                .get_top_guess_rank(&app_state.db)
+                .await?
+                .unwrap_or(1001);
+
+            // Match on SimilariumError with error_type SimilariumErrorType::NotFound to let the
             // user know the word isn't in the dictionary
             let guess = match submit_guess(&local_user, &game, guess_value, &app_state.db).await {
                 Ok(guess) => guess,
@@ -82,13 +92,14 @@ async fn post_events(
                 Err(e) => return Err(e),
             };
 
-            if guess.is_secret() {
+            let is_secret = guess.is_secret();
+            if is_secret {
                 let guess_num = match guess {
                     Guess {
-                        user_id,
+                        ref user_id,
                         guess_num: Some(guess_num),
                         ..
-                    } if user_id == user.id => guess_num,
+                    } if user_id == &user.id => guess_num,
                     _ => game.get_guess_count(&app_state.db).await.unwrap_or(0),
                 };
                 game.add_winner(&user.id, guess_num, &app_state.db).await?;
@@ -136,6 +147,10 @@ async fn post_events(
                     Some(blocks),
                 )
                 .await?;
+
+            if !is_secret && top_rank > 10 && guess.rank <= 1000 && guess.rank < top_rank {
+                celebrate(top_rank, guess, game, user, app_state, channel, token).await?;
+            }
         }
         _ => {
             todo!("Not handled");
@@ -143,6 +158,49 @@ async fn post_events(
     }
 
     Ok(HttpResponse::Ok().into())
+}
+
+async fn celebrate(
+    top_rank: i64,
+    guess: Guess,
+    game: Game,
+    user: User,
+    app_state: web::Data<AppState>,
+    channel: Channel,
+    token: String,
+) -> Result<(), SimilariumError> {
+    let mut should_celebrate = false;
+    let mut bucket = i64::MAX;
+
+    if guess.rank <= 10 && top_rank > 10 {
+        should_celebrate = true;
+        bucket = 10;
+    } else if guess.rank <= 100 && top_rank > 100 {
+        should_celebrate = true;
+        bucket = 100;
+    } else if guess.rank <= 1000 && top_rank > 1000 {
+        should_celebrate = true;
+        bucket = 1000;
+    }
+
+    if !should_celebrate {
+        return Ok(());
+    }
+
+    let celebration = get_celebration(
+        game.get_guess_count(&app_state.db).await.unwrap_or(0),
+        &user.id,
+        &guess.word,
+        guess.rank,
+        bucket,
+    )
+    .await?;
+    app_state
+        .slack_client
+        .post_message(&celebration.message, &channel.id, &token, None)
+        .await?;
+
+    Ok(())
 }
 
 pub fn scope() -> Scope {

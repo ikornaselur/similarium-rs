@@ -231,6 +231,34 @@ impl Game {
         Ok(guesses)
     }
 
+    /// Get the top guess rank
+    ///
+    ///
+    /// This is useful to know if a new guess is going to be in the top X, by comparing what
+    /// the top rank was with a new guess
+    pub async fn get_top_guess_rank(
+        &self,
+        db: &sqlx::PgPool,
+    ) -> Result<Option<i64>, SimilariumError> {
+        sqlx::query!(
+            r#"
+        SELECT
+            rank
+        FROM
+            guess
+        WHERE
+            game_id = $1
+        ORDER BY
+            rank ASC
+        LIMIT 1
+        "#,
+            self.id
+        )
+        .fetch_optional(db)
+        .await?
+        .map_or(Ok(None), |g| Ok(Some(g.rank)))
+    }
+
     pub async fn get_next_puzzle_number(channel_id: String, db: &sqlx::PgPool) -> i64 {
         let last_puzzle_number = match sqlx::query!(
             r#"
