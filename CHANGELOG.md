@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.8.0](https://github.com/ikornaselur/similarium-rs/compare/v0.7.1...v0.8.0) (2024-05-28)
+
+
+### Features
+
+* AI generated notifications/taunts ([#216](https://github.com/ikornaselur/similarium-rs/issues/216)) ([bcb73a2](https://github.com/ikornaselur/similarium-rs/commit/bcb73a2ccd7be76b4d734bddfcc971186f334c0e))
+
+
+### Dependencies
+
+* bump actix-web from 4.5.1 to 4.6.0 ([#212](https://github.com/ikornaselur/similarium-rs/issues/212)) ([e5bfa47](https://github.com/ikornaselur/similarium-rs/commit/e5bfa472dcb224ee5afa056bfd8341b762a9a948))
+* bump chrono from 0.4.37 to 0.4.38 ([#202](https://github.com/ikornaselur/similarium-rs/issues/202)) ([dc25aa0](https://github.com/ikornaselur/similarium-rs/commit/dc25aa0f3dafa1d8b9fc679b14495ad3b7d625d6))
+* bump env_logger from 0.11.1 to 0.11.3 ([#201](https://github.com/ikornaselur/similarium-rs/issues/201)) ([8b78d67](https://github.com/ikornaselur/similarium-rs/commit/8b78d67154fb3d0305fd4aa72bab63bd267ec055))
+* bump reqwest from 0.12.3 to 0.12.4 ([#206](https://github.com/ikornaselur/similarium-rs/issues/206)) ([ce5d9a3](https://github.com/ikornaselur/similarium-rs/commit/ce5d9a348f3a52d215a2e9d7e849d6fd9c9df690))
+* bump rustls from 0.21.10 to 0.21.12 ([#215](https://github.com/ikornaselur/similarium-rs/issues/215)) ([5a7b725](https://github.com/ikornaselur/similarium-rs/commit/5a7b725042ef2da467214302687465773f2ab920))
+* bump serde from 1.0.197 to 1.0.203 ([#214](https://github.com/ikornaselur/similarium-rs/issues/214)) ([776bc0a](https://github.com/ikornaselur/similarium-rs/commit/776bc0ae5da22afc6e4bd49d0cab675c0a2ddcb1))
+* bump serde_json from 1.0.115 to 1.0.117 ([#210](https://github.com/ikornaselur/similarium-rs/issues/210)) ([5cf385e](https://github.com/ikornaselur/similarium-rs/commit/5cf385e29d89171bf9f8d51391ad930acdde4e23))
+
 ## [0.7.1](https://github.com/ikornaselur/similarium-rs/compare/v0.7.0...v0.7.1) (2024-04-05)
 
 
