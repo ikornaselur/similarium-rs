@@ -1,8 +1,9 @@
 use crate::{
+    ai::{get_celebration, get_taunt, get_win_message},
     api::app::AppState,
     game::{submit_guess, utils::get_game_blocks},
-    models::{Game, Guess, SlackBot},
-    payloads::{Event, EventPayload},
+    models::{Game, Guess, GuessContext, GuessContextOrder, SlackBot},
+    payloads::{Channel, Event, EventPayload, User},
     slack_client::SlackMessage,
     utils::get_or_create_user,
     SimilariumError,
@@ -56,7 +57,16 @@ async fn post_events(
                 return Ok(HttpResponse::Ok().into());
             }
 
-            // Match on SimilariumERror with error_type SimilariumErrorType::NotFound to let the
+            // Get the top rank, so that we can know if we had a milestone with this guess. A
+            // milestone is first guess in the top 1000, top 100 and top 10.
+            // If no guess has been made, we can just set the top rank to 1001, as that's higher
+            // than the biggest 'bucket' we celebrate for
+            let top_rank = game
+                .get_top_guess_rank(&app_state.db)
+                .await?
+                .unwrap_or(1001);
+
+            // Match on SimilariumError with error_type SimilariumErrorType::NotFound to let the
             // user know the word isn't in the dictionary
             let guess = match submit_guess(&local_user, &game, guess_value, &app_state.db).await {
                 Ok(guess) => guess,
@@ -82,13 +92,17 @@ async fn post_events(
                 Err(e) => return Err(e),
             };
 
-            if guess.is_secret() {
+            let top_guesses = game
+                .get_guess_contexts(GuessContextOrder::Rank, 10, &app_state.db)
+                .await?;
+            let is_secret = guess.is_secret();
+            if is_secret {
                 let guess_num = match guess {
                     Guess {
-                        user_id,
+                        ref user_id,
                         guess_num: Some(guess_num),
                         ..
-                    } if user_id == user.id => guess_num,
+                    } if user_id == &user.id => guess_num,
                     _ => game.get_guess_count(&app_state.db).await.unwrap_or(0),
                 };
                 game.add_winner(&user.id, guess_num, &app_state.db).await?;
@@ -109,19 +123,7 @@ async fn post_events(
                     .await?;
 
                 // Post on the channel to celebrate!
-                let celebrate_emoji = ":tada:";
-                app_state
-                    .slack_client
-                    .post_message(
-                        &format!(
-                            "{} <@{}> has just found the secret of the day! {}",
-                            celebrate_emoji, user.id, celebrate_emoji
-                        ),
-                        &channel.id,
-                        &token,
-                        None,
-                    )
-                    .await?;
+                win_message(guess_num, &user, &top_guesses, &app_state, &channel, &token).await?;
             }
 
             let blocks = get_game_blocks(&game, &app_state.db).await?;
@@ -136,6 +138,56 @@ async fn post_events(
                     Some(blocks),
                 )
                 .await?;
+
+            let guess_count = game.get_guess_count(&app_state.db).await.unwrap_or(0);
+
+            if !is_secret && top_rank > 10 && guess.rank <= 1000 && guess.rank < top_rank {
+                celebrate(
+                    top_rank,
+                    &guess,
+                    guess_count,
+                    &user,
+                    &top_guesses,
+                    &app_state,
+                    &channel,
+                    &token,
+                )
+                .await?;
+            }
+            let top_guess = top_guesses.first().unwrap();
+
+            let guess_count = game.get_guess_count(&app_state.db).await.unwrap_or(0);
+            let guesses_since_taunt = guess_count - game.taunt_index;
+            let taunt_threshold = 40;
+
+            if top_guess.rank > 1000 && guesses_since_taunt > taunt_threshold {
+                // Calculate some randomness, making it more likely with every guess above the
+                // taunt threshold that we taunt. The odds start at low and slowly increase with
+                // each guess, until a taunt is made. The odds reset then.
+                let should_taunt = rand::random::<f64>()
+                    > (taunt_threshold as f64) / (1.1 * guesses_since_taunt as f64);
+
+                if should_taunt {
+                    let mut game =
+                        Game::get(channel.id.as_str(), message.ts.as_str(), &app_state.db)
+                            .await?
+                            .map_or_else(|| validation_error!("Game not found"), Ok)?;
+                    game.set_taunt_index(guess_count, &app_state.db).await?;
+
+                    let participant_user_ids = game.get_participant_user_ids(&app_state.db).await?;
+                    taunt(
+                        guess_count,
+                        top_guess.word.as_str(),
+                        top_guess.rank,
+                        participant_user_ids,
+                        &top_guesses,
+                        &app_state,
+                        &channel,
+                        &token,
+                    )
+                    .await?;
+                }
+            }
         }
         _ => {
             todo!("Not handled");
@@ -143,6 +195,120 @@ async fn post_events(
     }
 
     Ok(HttpResponse::Ok().into())
+}
+
+// TODO: Simplify..
+#[allow(clippy::too_many_arguments)]
+async fn celebrate(
+    top_rank: i64,
+    guess: &Guess,
+    guess_count: i64,
+    user: &User,
+    top_guesses: &[GuessContext],
+    app_state: &web::Data<AppState>,
+    channel: &Channel,
+    token: &str,
+) -> Result<(), SimilariumError> {
+    let mut should_celebrate = false;
+    let mut bucket = i64::MAX;
+
+    if guess.rank <= 10 && top_rank > 10 {
+        should_celebrate = true;
+        bucket = 10;
+    } else if guess.rank <= 100 && top_rank > 100 {
+        should_celebrate = true;
+        bucket = 100;
+    } else if guess.rank <= 1000 && top_rank > 1000 {
+        should_celebrate = true;
+        bucket = 1000;
+    }
+
+    if !should_celebrate {
+        return Ok(());
+    }
+
+    let top_guesses = top_guesses
+        .iter()
+        .map(|gc| (gc.rank, gc.word.as_str()))
+        .collect::<Vec<_>>();
+
+    let celebration = get_celebration(
+        guess_count,
+        &user.id,
+        &guess.word,
+        guess.rank,
+        top_guesses,
+        bucket,
+    )
+    .await?;
+    log::debug!("Celebrating: {}", celebration.message);
+
+    app_state
+        .slack_client
+        .post_message(&celebration.message, &channel.id, token, None)
+        .await?;
+
+    Ok(())
+}
+
+// TODO: Simplify..
+#[allow(clippy::too_many_arguments)]
+async fn taunt(
+    guess_count: i64,
+    top_word: &str,
+    top_word_rank: i64,
+    participant_user_ids: Vec<String>,
+    top_guesses: &[GuessContext],
+    app_state: &web::Data<AppState>,
+    channel: &Channel,
+    token: &str,
+) -> Result<(), SimilariumError> {
+    let top_guesses = top_guesses
+        .iter()
+        .map(|gc| (gc.rank, gc.word.as_str()))
+        .collect::<Vec<_>>();
+
+    let taunt = get_taunt(
+        guess_count,
+        top_word,
+        top_word_rank,
+        participant_user_ids,
+        top_guesses,
+    )
+    .await?;
+    log::debug!("Taunting: {}", taunt.message);
+
+    app_state
+        .slack_client
+        .post_message(&taunt.message, &channel.id, token, None)
+        .await?;
+
+    Ok(())
+}
+
+async fn win_message(
+    guess_count: i64,
+    user: &User,
+    top_guesses: &[GuessContext],
+    app_state: &web::Data<AppState>,
+    channel: &Channel,
+    token: &str,
+) -> Result<(), SimilariumError> {
+    let top_guesses = top_guesses
+        .iter()
+        .map(|gc| (gc.rank, gc.word.as_str()))
+        .collect::<Vec<_>>();
+
+    let win_message = get_win_message(guess_count, &user.id, top_guesses).await?;
+
+    log::debug!("Win message: {}", win_message.message);
+
+    app_state
+        .slack_client
+        .post_message(&win_message.message, &channel.id, token, None)
+        .await?;
+
+    Ok(())
 }
 
 pub fn scope() -> Scope {

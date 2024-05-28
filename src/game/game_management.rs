@@ -189,6 +189,7 @@ pub async fn manual_start(
         date: datetime,
         active: true,
         hint: None,
+        taunt_index: 0,
         secret: target_word.word.clone(),
     };
     game.insert(db).await?;
@@ -254,6 +255,7 @@ pub async fn start_game_on_channel(
         date: datetime,
         active: true,
         hint: None,
+        taunt_index: 0,
         secret: target_word.word.clone(),
     };
     game.insert(db).await?;

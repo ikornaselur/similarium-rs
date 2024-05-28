@@ -1,5 +1,6 @@
 #[macro_use]
 mod macros;
+pub mod ai;
 pub mod api;
 mod config;
 mod db;
