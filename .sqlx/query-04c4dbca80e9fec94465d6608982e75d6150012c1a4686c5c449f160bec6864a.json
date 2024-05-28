@@ -42,6 +42,11 @@
         "ordinal": 7,
         "name": "hint",
         "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "taunt_index",
+        "type_info": "Int8"
       }
     ],
     "parameters": {
@@ -57,7 +62,8 @@
       false,
       false,
       false,
-      true
+      true,
+      false
     ]
   },
   "hash": "04c4dbca80e9fec94465d6608982e75d6150012c1a4686c5c449f160bec6864a"
