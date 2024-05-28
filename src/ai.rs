@@ -140,3 +140,34 @@ pub async fn get_taunt(
 
     Ok(serde_json::from_str(&content)?)
 }
+
+pub async fn get_win_message(guess_count: i64, user_id: &str) -> Result<Message, SimilariumError> {
+    let win_prompt = format!("The user '{user_id}' just found the secret! There have been a total of {guess_count} guesses by the time they found the secret. Write a message to announce them finding the secret in the format:\n'<Win message>'\nAn example is:\n'Congratulations <user>! You found the secret in 42 guesses! You are the winner!'\nKeep it fun, witty and slightly over the top. Include 1-3 emojis at the end that are relevant.");
+    let full_prompt = format!(
+        "{GAME_EXPLANATION}\n{GAME_STATE}\n{win_prompt}\n{RETURN_FORMAT}\n{USER_ID_CLARIFICATIONS}"
+    );
+
+    let client = Client::new();
+    let request = CreateChatCompletionRequestArgs::default()
+        .max_tokens(512u16)
+        .model("gpt-4o")
+        .response_format(ChatCompletionResponseFormat {
+            r#type: ChatCompletionResponseFormatType::JsonObject,
+        })
+        .messages([ChatCompletionRequestSystemMessageArgs::default()
+            .content(full_prompt)
+            .build()?
+            .into()])
+        .build()?;
+
+    log::debug!("{}", serde_json::to_string(&request)?);
+
+    let response = client.chat().create(request).await?;
+    let content = response.choices[0]
+        .message
+        .content
+        .clone()
+        .map_or_else(|| ai_error!("Unable to get response from model"), Ok)?;
+
+    Ok(serde_json::from_str(&content)?)
+}

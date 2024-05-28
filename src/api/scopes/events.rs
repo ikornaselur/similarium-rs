@@ -1,5 +1,5 @@
 use crate::{
-    ai::{get_celebration, get_taunt},
+    ai::{get_celebration, get_taunt, get_win_message},
     api::app::AppState,
     game::{submit_guess, utils::get_game_blocks},
     models::{Game, Guess, GuessContextOrder, SlackBot},
@@ -120,19 +120,7 @@ async fn post_events(
                     .await?;
 
                 // Post on the channel to celebrate!
-                let celebrate_emoji = ":tada:";
-                app_state
-                    .slack_client
-                    .post_message(
-                        &format!(
-                            "{} <@{}> has just found the secret of the day! {}",
-                            celebrate_emoji, user.id, celebrate_emoji
-                        ),
-                        &channel.id,
-                        &token,
-                        None,
-                    )
-                    .await?;
+                win_message(guess_num, &user, &app_state, &channel, &token).await?;
             }
 
             let blocks = get_game_blocks(&game, &app_state.db).await?;
@@ -261,6 +249,25 @@ async fn taunt(
     app_state
         .slack_client
         .post_message(&taunt.message, &channel.id, token, None)
+        .await?;
+
+    Ok(())
+}
+
+async fn win_message(
+    guess_count: i64,
+    user: &User,
+    app_state: &web::Data<AppState>,
+    channel: &Channel,
+    token: &str,
+) -> Result<(), SimilariumError> {
+    let win_message = get_win_message(guess_count, &user.id).await?;
+
+    log::debug!("Win message: {}", win_message.message);
+
+    app_state
+        .slack_client
+        .post_message(&win_message.message, &channel.id, token, None)
         .await?;
 
     Ok(())
