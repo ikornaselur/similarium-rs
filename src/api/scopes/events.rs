@@ -2,7 +2,7 @@ use crate::{
     ai::{get_celebration, get_taunt, get_win_message},
     api::app::AppState,
     game::{submit_guess, utils::get_game_blocks},
-    models::{Game, Guess, GuessContextOrder, SlackBot},
+    models::{Game, Guess, GuessContext, GuessContextOrder, SlackBot},
     payloads::{Channel, Event, EventPayload, User},
     slack_client::SlackMessage,
     utils::get_or_create_user,
@@ -92,6 +92,9 @@ async fn post_events(
                 Err(e) => return Err(e),
             };
 
+            let top_guesses = game
+                .get_guess_contexts(GuessContextOrder::Rank, 10, &app_state.db)
+                .await?;
             let is_secret = guess.is_secret();
             if is_secret {
                 let guess_num = match guess {
@@ -120,7 +123,7 @@ async fn post_events(
                     .await?;
 
                 // Post on the channel to celebrate!
-                win_message(guess_num, &user, &app_state, &channel, &token).await?;
+                win_message(guess_num, &user, &top_guesses, &app_state, &channel, &token).await?;
             }
 
             let blocks = get_game_blocks(&game, &app_state.db).await?;
@@ -144,16 +147,14 @@ async fn post_events(
                     &guess,
                     guess_count,
                     &user,
+                    &top_guesses,
                     &app_state,
                     &channel,
                     &token,
                 )
                 .await?;
             }
-            let top_guess = game
-                .get_guess_contexts(GuessContextOrder::Rank, 1, &app_state.db)
-                .await?;
-            let top_guess = top_guess.first().unwrap();
+            let top_guess = top_guesses.first().unwrap();
 
             let guess_count = game.get_guess_count(&app_state.db).await.unwrap_or(0);
             let guesses_since_taunt = guess_count - game.taunt_index;
@@ -179,6 +180,7 @@ async fn post_events(
                         top_guess.word.as_str(),
                         top_guess.rank,
                         participant_user_ids,
+                        &top_guesses,
                         &app_state,
                         &channel,
                         &token,
@@ -195,11 +197,14 @@ async fn post_events(
     Ok(HttpResponse::Ok().into())
 }
 
+// TODO: Simplify..
+#[allow(clippy::too_many_arguments)]
 async fn celebrate(
     top_rank: i64,
     guess: &Guess,
     guess_count: i64,
     user: &User,
+    top_guesses: &[GuessContext],
     app_state: &web::Data<AppState>,
     channel: &Channel,
     token: &str,
@@ -222,8 +227,20 @@ async fn celebrate(
         return Ok(());
     }
 
-    let celebration =
-        get_celebration(guess_count, &user.id, &guess.word, guess.rank, bucket).await?;
+    let top_guesses = top_guesses
+        .iter()
+        .map(|gc| (gc.rank, gc.word.as_str()))
+        .collect::<Vec<_>>();
+
+    let celebration = get_celebration(
+        guess_count,
+        &user.id,
+        &guess.word,
+        guess.rank,
+        top_guesses,
+        bucket,
+    )
+    .await?;
     log::debug!("Celebrating: {}", celebration.message);
 
     app_state
@@ -234,16 +251,31 @@ async fn celebrate(
     Ok(())
 }
 
+// TODO: Simplify..
+#[allow(clippy::too_many_arguments)]
 async fn taunt(
     guess_count: i64,
     top_word: &str,
     top_word_rank: i64,
     participant_user_ids: Vec<String>,
+    top_guesses: &[GuessContext],
     app_state: &web::Data<AppState>,
     channel: &Channel,
     token: &str,
 ) -> Result<(), SimilariumError> {
-    let taunt = get_taunt(guess_count, top_word, top_word_rank, participant_user_ids).await?;
+    let top_guesses = top_guesses
+        .iter()
+        .map(|gc| (gc.rank, gc.word.as_str()))
+        .collect::<Vec<_>>();
+
+    let taunt = get_taunt(
+        guess_count,
+        top_word,
+        top_word_rank,
+        participant_user_ids,
+        top_guesses,
+    )
+    .await?;
     log::debug!("Taunting: {}", taunt.message);
 
     app_state
@@ -257,11 +289,17 @@ async fn taunt(
 async fn win_message(
     guess_count: i64,
     user: &User,
+    top_guesses: &[GuessContext],
     app_state: &web::Data<AppState>,
     channel: &Channel,
     token: &str,
 ) -> Result<(), SimilariumError> {
-    let win_message = get_win_message(guess_count, &user.id).await?;
+    let top_guesses = top_guesses
+        .iter()
+        .map(|gc| (gc.rank, gc.word.as_str()))
+        .collect::<Vec<_>>();
+
+    let win_message = get_win_message(guess_count, &user.id, top_guesses).await?;
 
     log::debug!("Win message: {}", win_message.message);
 
