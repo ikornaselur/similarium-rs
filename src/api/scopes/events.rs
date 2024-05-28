@@ -1,8 +1,8 @@
 use crate::{
-    ai::get_celebration,
+    ai::{get_celebration, get_taunt},
     api::app::AppState,
     game::{submit_guess, utils::get_game_blocks},
-    models::{Game, Guess, SlackBot},
+    models::{Game, Guess, GuessContextOrder, SlackBot},
     payloads::{Channel, Event, EventPayload, User},
     slack_client::SlackMessage,
     utils::get_or_create_user,
@@ -148,8 +148,55 @@ async fn post_events(
                 )
                 .await?;
 
+            let guess_count = game.get_guess_count(&app_state.db).await.unwrap_or(0);
+
             if !is_secret && top_rank > 10 && guess.rank <= 1000 && guess.rank < top_rank {
-                celebrate(top_rank, guess, game, user, app_state, channel, token).await?;
+                celebrate(
+                    top_rank,
+                    &guess,
+                    guess_count,
+                    &user,
+                    &app_state,
+                    &channel,
+                    &token,
+                )
+                .await?;
+            }
+            let top_guess = game
+                .get_guess_contexts(GuessContextOrder::Rank, 1, &app_state.db)
+                .await?;
+            let top_guess = top_guess.first().unwrap();
+
+            let guess_count = game.get_guess_count(&app_state.db).await.unwrap_or(0);
+            let guesses_since_taunt = guess_count - game.taunt_index;
+            let taunt_threshold = 40;
+
+            if top_guess.rank > 1000 && guesses_since_taunt > taunt_threshold {
+                // Calculate some randomness, making it more likely with every guess above the
+                // taunt threshold that we taunt. The odds start at low and slowly increase with
+                // each guess, until a taunt is made. The odds reset then.
+                let should_taunt = rand::random::<f64>()
+                    > (taunt_threshold as f64) / (1.1 * guesses_since_taunt as f64);
+
+                if should_taunt {
+                    let mut game =
+                        Game::get(channel.id.as_str(), message.ts.as_str(), &app_state.db)
+                            .await?
+                            .map_or_else(|| validation_error!("Game not found"), Ok)?;
+                    game.set_taunt_index(guess_count, &app_state.db).await?;
+
+                    let participant_user_ids = game.get_participant_user_ids(&app_state.db).await?;
+                    taunt(
+                        guess_count,
+                        top_guess.word.as_str(),
+                        top_guess.rank,
+                        participant_user_ids,
+                        &app_state,
+                        &channel,
+                        &token,
+                    )
+                    .await?;
+                }
             }
         }
         _ => {
@@ -162,12 +209,12 @@ async fn post_events(
 
 async fn celebrate(
     top_rank: i64,
-    guess: Guess,
-    game: Game,
-    user: User,
-    app_state: web::Data<AppState>,
-    channel: Channel,
-    token: String,
+    guess: &Guess,
+    guess_count: i64,
+    user: &User,
+    app_state: &web::Data<AppState>,
+    channel: &Channel,
+    token: &str,
 ) -> Result<(), SimilariumError> {
     let mut should_celebrate = false;
     let mut bucket = i64::MAX;
@@ -187,17 +234,33 @@ async fn celebrate(
         return Ok(());
     }
 
-    let celebration = get_celebration(
-        game.get_guess_count(&app_state.db).await.unwrap_or(0),
-        &user.id,
-        &guess.word,
-        guess.rank,
-        bucket,
-    )
-    .await?;
+    let celebration =
+        get_celebration(guess_count, &user.id, &guess.word, guess.rank, bucket).await?;
+    log::debug!("Celebrating: {}", celebration.message);
+
     app_state
         .slack_client
-        .post_message(&celebration.message, &channel.id, &token, None)
+        .post_message(&celebration.message, &channel.id, token, None)
+        .await?;
+
+    Ok(())
+}
+
+async fn taunt(
+    guess_count: i64,
+    top_word: &str,
+    top_word_rank: i64,
+    participant_user_ids: Vec<String>,
+    app_state: &web::Data<AppState>,
+    channel: &Channel,
+    token: &str,
+) -> Result<(), SimilariumError> {
+    let taunt = get_taunt(guess_count, top_word, top_word_rank, participant_user_ids).await?;
+    log::debug!("Taunting: {}", taunt.message);
+
+    app_state
+        .slack_client
+        .post_message(&taunt.message, &channel.id, token, None)
         .await?;
 
     Ok(())

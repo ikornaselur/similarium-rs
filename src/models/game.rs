@@ -14,6 +14,7 @@ pub struct Game {
     pub active: bool,
     pub secret: String,
     pub hint: Option<String>,
+    pub taunt_index: i64,
 }
 
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
@@ -93,10 +94,11 @@ impl Game {
                     date,
                     active,
                     secret,
-                    hint
+                    hint,
+                    taunt_index
                 )
             VALUES 
-                ($1, $2, $3, $4, $5, $6, $7, $8);
+                ($1, $2, $3, $4, $5, $6, $7, $8, $9);
             "#,
             self.id,
             self.channel_id,
@@ -106,6 +108,7 @@ impl Game {
             self.active,
             self.secret,
             self.hint,
+            self.taunt_index,
         )
         .execute(db)
         .await?;
@@ -153,6 +156,30 @@ impl Game {
                 id = $2
             "#,
             self.thread_ts,
+            self.id,
+        )
+        .execute(db)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn set_taunt_index(
+        &mut self,
+        taunt_index: i64,
+        db: &sqlx::PgPool,
+    ) -> Result<(), SimilariumError> {
+        log::debug!("[Game: {}] Setting taunt_index to {}", self.id, taunt_index);
+        self.taunt_index = taunt_index;
+        sqlx::query!(
+            r#"
+            UPDATE
+                game
+            SET
+                taunt_index = $1
+            WHERE
+                id = $2
+            "#,
+            self.taunt_index,
             self.id,
         )
         .execute(db)
@@ -233,7 +260,6 @@ impl Game {
 
     /// Get the top guess rank
     ///
-    ///
     /// This is useful to know if a new guess is going to be in the top X, by comparing what
     /// the top rank was with a new guess
     pub async fn get_top_guess_rank(
@@ -242,21 +268,45 @@ impl Game {
     ) -> Result<Option<i64>, SimilariumError> {
         sqlx::query!(
             r#"
-        SELECT
-            rank
-        FROM
-            guess
-        WHERE
-            game_id = $1
-        ORDER BY
-            rank ASC
-        LIMIT 1
-        "#,
+            SELECT
+                rank
+            FROM
+                guess
+            WHERE
+                game_id = $1
+            ORDER BY
+                rank ASC
+            LIMIT 1
+            "#,
             self.id
         )
         .fetch_optional(db)
         .await?
         .map_or(Ok(None), |g| Ok(Some(g.rank)))
+    }
+
+    pub async fn get_participant_user_ids(
+        &self,
+        db: &sqlx::PgPool,
+    ) -> Result<Vec<String>, SimilariumError> {
+        let user_ids: Vec<String> = sqlx::query!(
+            r#"
+            SELECT
+                distinct(user_id)
+            FROM
+                guess
+            WHERE
+                game_id = $1
+            "#,
+            self.id
+        )
+        .fetch_all(db)
+        .await?
+        .iter()
+        .map(|g| g.user_id.to_string())
+        .collect();
+
+        Ok(user_ids)
     }
 
     pub async fn get_next_puzzle_number(channel_id: String, db: &sqlx::PgPool) -> i64 {
@@ -379,6 +429,7 @@ mod tests {
             active: true,
             hint: None,
             secret: "secret".to_string(),
+            taunt_index: 0,
         };
         game.insert(&pool).await?;
 

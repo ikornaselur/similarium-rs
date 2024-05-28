@@ -5,7 +5,8 @@ INSERT INTO
     puzzle_number,
     date,
     active,
-    secret
+    secret,
+    taunt_index
   )
 VALUES
   (
@@ -14,7 +15,8 @@ VALUES
     3,
     '2019-01-01',
     true,
-    'secret'
+    'secret',
+    0
   );
 
 INSERT INTO
@@ -24,7 +26,8 @@ INSERT INTO
     puzzle_number,
     date,
     active,
-    secret
+    secret,
+    taunt_index
   )
 VALUES
   (
@@ -33,5 +36,6 @@ VALUES
     2,
     '2019-01-01',
     false,
-    'secret'
+    'secret',
+    0
   );
