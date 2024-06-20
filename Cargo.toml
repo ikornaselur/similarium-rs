@@ -37,4 +37,4 @@ strip = true
 
 [dev-dependencies]
 mockall = "0.12.1"
-mockito = "1.2.0"
+mockito = "1.4.0"
