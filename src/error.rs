@@ -86,7 +86,7 @@ impl SimilariumError {
 
 impl From<SimilariumError> for fang::FangError {
     fn from(error: SimilariumError) -> Self {
-        log::error!("Background task error encountered");
+        log::error!("Background task error encountered: {}", error);
         fang::FangError {
             description: error.message(),
         }
