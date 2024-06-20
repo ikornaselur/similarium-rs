@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.1](https://github.com/ikornaselur/similarium-rs/compare/v0.8.0...v0.8.1) (2024-06-20)
+
+
+### Bug Fixes
+
+* Log Fang errors to console ([#226](https://github.com/ikornaselur/similarium-rs/issues/226)) ([c4b149f](https://github.com/ikornaselur/similarium-rs/commit/c4b149f4b4c4eec33e033c26d8f28ea8ed42c9a1))
+
+
+### Dependencies
+
+* Bump actix-web from 4.6.0 to 4.8.0 ([#228](https://github.com/ikornaselur/similarium-rs/issues/228)) ([7999cdb](https://github.com/ikornaselur/similarium-rs/commit/7999cdb12564e398dcc807b165273b06000a7065))
+* bump async-openai from 0.21.0 to 0.23.0 ([#218](https://github.com/ikornaselur/similarium-rs/issues/218)) ([a023139](https://github.com/ikornaselur/similarium-rs/commit/a0231391b829359a8b6d40d87781e53f1efc0815))
+* Bump async-openai from 0.23.0 to 0.23.3 ([#223](https://github.com/ikornaselur/similarium-rs/issues/223)) ([96b8399](https://github.com/ikornaselur/similarium-rs/commit/96b83992fb82295182a0f45fb0d77a776f413c29))
+* Bump reqwest from 0.12.4 to 0.12.5 ([#222](https://github.com/ikornaselur/similarium-rs/issues/222)) ([b20ac43](https://github.com/ikornaselur/similarium-rs/commit/b20ac43705e89aff3ea81f6e10792df4370510a4))
+
 ## [0.8.0](https://github.com/ikornaselur/similarium-rs/compare/v0.7.1...v0.8.0) (2024-05-28)
 
 
